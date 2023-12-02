@@ -15,11 +15,14 @@ class Dataset :
 
         #Normalize values to be between [0, 1] instead of [0, 255]
         self.x_train, self.x_test = self.x_train[..., np.newaxis]/255.0, self.x_test[..., np.newaxis]/255.0
-
+        
+        self.num_clients = num_clients
 
         self.horizontal_clients_dataset = self.horizontalDivideData()
 
         self.vertical_clients_datasets = self.verticalDivideData()
+
+        
         
         
 
@@ -29,6 +32,7 @@ class Dataset :
         indices = np.arange(len(self.x_train))
         np.random.shuffle(indices)
 
+        print(self.num_clients)
         # Split the data into num_clients parts
         client_IDs = np.array_split(indices, self.num_clients)
 
@@ -58,7 +62,7 @@ class Dataset :
             multiplier = num_features//self.num_clients + 1
             duplicate_features_needed =  multiplier * self.num_clients - num_features
 
-        feature_names = range(num_features) #Feature indicies without duplicates
+        feature_names = list(range(num_features)) #Feature indicies without duplicates
         
         for i in range(duplicate_features_needed):
             x = random.randint(0, num_features -1)
@@ -81,7 +85,7 @@ class Dataset :
 
 
 
-# data = Dataset()
-# print(data.getDataSets())
 
-print(tf.keras.datasets.mnist.load_data())
+data = Dataset(20)
+print(data.verticalDivideData())
+
