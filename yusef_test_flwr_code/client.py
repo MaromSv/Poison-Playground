@@ -1,23 +1,29 @@
 import tensorflow as tf
+from tensorflow import keras 
 import flwr as fl
 
-# Code from the video, but uses a different dataset
-model = tf.keras.applications.MobileNetV2((32, 32, 3), classes=10, weights=None)
-model.compile("adam", "sparse_categorical_crossentropy", metrics=["accuracy"])
-(x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
-
-# Code from the tensorflow website, untested
-# model = tf.keras.models.Sequential([
-#   tf.keras.layers.Flatten(input_shape=(28, 28)),
-#   tf.keras.layers.Dense(128, activation='relu'),
-#   tf.keras.layers.Dense(10)
+# Code from the tensorflow website
+# model = keras.models.Sequential([
+#   keras.layers.Flatten(input_shape=(28, 28)),
+#   keras.layers.Dense(128, activation='relu'),
+#   keras.layers.Dense(10)
 # ])
 # model.compile(
-#     optimizer=tf.keras.optimizers.Adam(0.001),
-#     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-#     metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
+#     optimizer=keras.optimizers.Adam(0.001),
+#     loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+#     metrics=[keras.metrics.SparseCategoricalAccuracy()],
 # )
 # (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+
+# Code from 03_Non IID, different model but not sure of the differences
+model = keras.Sequential([
+    keras.layers.Flatten(input_shape=(28,28)),
+    keras.layers.Dense(128, activation='relu'),
+    keras.layers.Dense(256, activation='relu'),
+    keras.layers.Dense(10, activation='softmax')
+])
+model.compile("adam", "sparse_categorical_crossentropy", metrics=["accuracy"])
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self, model, x_train, y_train, x_test, y_test):
@@ -38,7 +44,7 @@ class FlowerClient(fl.client.NumPyClient):
     def evaluate(self, parameters, config):
         self.model.set_weights(parameters)
         loss, accuracy = self.model.evaluate(self.x_test, self.y_test)
-        return loss, len(self.x_test), {"accuracy": accuracy} # here the dictionary actually contains the accuracy since we calculated it here
+        return loss, len(self.x_test), {"accuracy": accuracy, "test": 1} # here the dictionary actually contains the accuracy since we calculated it here
     
 
 fl.client.start_numpy_client(server_address="127.0.0.1:8080", client=FlowerClient(model, x_train, y_train, x_test, y_test))
