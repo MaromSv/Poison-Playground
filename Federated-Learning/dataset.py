@@ -25,8 +25,8 @@ class Dataset :
 
     def horizontalDivideData(self):
         # # Shuffle the data to introduce randomness
-        # indices = np.arange(len(self.x_train))
-        # np.random.shuffle(indices)
+        indices = np.arange(len(self.x_train))
+        
 
         print(self.num_clients)
         # Split the data into num_clients parts
@@ -59,7 +59,7 @@ class Dataset :
         feature_names_indicies = list(range(num_features)) 
         
         #Assign features to each client, such that each client has around the same number of features
-        clients_features = np.array_split(feature_names, self.num_clients)
+        clients_features = np.array_split(feature_names_indicies, self.num_clients)
 
         horizontal_clients_datasets = []
         for client in range(self.num_clients):
