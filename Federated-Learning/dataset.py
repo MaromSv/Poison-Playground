@@ -1,9 +1,6 @@
 import matplotlib.pyplot as plt
-import random
 import numpy as np
-import pickle
 import tensorflow as tf
-from tensorflow import keras
 
 
 class Dataset : 
@@ -56,7 +53,7 @@ class Dataset :
         num_features = self.x_train.shape[1] #Here we refer to a feature as a row of pixels
         
         feature_indicies = np.arange(num_features)
-        # np.random.shuffle(feature_indicies)
+        # np.random.shuffle(feature_indicies) #TODO: Should we shuffle? Should we not? Maybe make it a parameter
         # print(self.x_train.shape)
         #Assign features to each client, such that each client has around the same number of features
         clients_features = np.array_split(feature_indicies, self.num_clients)
@@ -72,20 +69,19 @@ class Dataset :
             vertical_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
         return vertical_clients_datasets
 
-
-    #Call this method to get your data as a client!
-    #vertical -> boolean
-    #clientID -> [0: numOfClients - 1]
-    def getMyData(self, vertical, clientID):
-        if vertical:
-            return self.vertical_clients_datasets(clientID)
+    def getDataSets(self, vertical):
+        if vertical == True:
+            return self.horizontal_clients_datasets
         else:
-            return self.horizontal_clients_datasets(clientID)
+            return self.vertical_clients_datasets
+    
+
+
 
 
 
 def plot_images(images, labels):
-    num_images = min(5, len(images))  # Change 5 to the desired number of images to plot
+    num_images = min(5, len(images))  # Plot first 5 images
     fig, axes = plt.subplots(1, num_images, figsize=(12, 3))
 
     for i in range(num_images):
@@ -99,15 +95,16 @@ def plot_images(images, labels):
 
 
 
-data = Dataset(2)
+# data = Dataset(2)
 
 
 
-# Assuming you have an instance of your class and you've called the horizontalDivideData function
-# Replace 'your_instance' with the actual instance of your class
-datasets = data.horizontalDivideData()
-datasets = data.verticalDivideData()
+# # datasets = data.horizontalDivideData()
+# datasets = data.verticalDivideData()
 
-# Plot images from the first client's dataset as an example
-client_0_images_train, client_0_labels_train, _, _ = datasets[0] #first client
-plot_images(client_0_images_train, client_0_labels_train)
+# # Plot images from the first client's dataset as an example
+# client_0_images_train, client_0_labels_train, _, _ = datasets[0] #first client
+# plot_images(client_0_images_train, client_0_labels_train)
+
+# client_0_images_train, client_0_labels_train, _, _ = datasets[1] #seccond client
+# plot_images(client_0_images_train, client_0_labels_train)
