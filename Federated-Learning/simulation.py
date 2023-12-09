@@ -1,25 +1,28 @@
 import tensorflow as tf
 from tensorflow import keras
-import dataset_yusef_test
 import flwr as fl
+from dataset import Dataset
+
+numOfClients = 2
+vertical = True
+dataInstance = Dataset(numOfClients)
+horizontalData = dataInstance.getDataSets(not vertical)
+verticalData= dataInstance.getDataSets(vertical)
+
+if vertical:
+    imageShape= ()
+else:
+    imageShape = (28, 28)
+
+
+
 
 # Creates an instance of the dataset class
-dset = dataset_yusef_test.Dataset(3)
 
-# Code from the tensorflow website
-# model = keras.models.Sequential([
-#   keras.layers.Flatten(input_shape=(28, 28)),
-#   keras.layers.Dense(128, activation='relu'),
-#   keras.layers.Dense(10)
-# ])
-# model.compile(
-#     optimizer=keras.optimizers.Adam(0.001),
-#     loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-#     metrics=[keras.metrics.SparseCategoricalAccuracy()],
-# )
-# (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
-# Code from 03_Non IID, different model but not sure of the differences
+
+
+
 model = keras.Sequential([
     keras.layers.Flatten(input_shape=(28,28)),
     keras.layers.Dense(128, activation='relu'),
@@ -27,7 +30,7 @@ model = keras.Sequential([
     keras.layers.Dense(10, activation='softmax')
 ])
 model.compile("adam", "sparse_categorical_crossentropy", metrics=["accuracy"])
-
+#TODO:pottential paramater: modle i.e sgd, adam, etc.
 
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self, model, x_train, y_train, x_test, y_test):
@@ -64,27 +67,27 @@ class FlowerClient(fl.client.NumPyClient):
 #             model, dset.vertical_clients_dataset[clientID][0], dset.vertical_clients_dataset[clientID][1], dset.x_test, dset.y_test
 #         )
 
-def generate_client_fn(x_train, y_train, x_test, y_test, horizontal):
+def generate_client_fn(horizontal):
     def client_fn(clientID):
         """Returns a FlowerClient containing the cid-th data partition"""
-
+        clientID = int(clientID)
         # NOTE:!!!!!!!
         # Not sure where the client's test data is, where?
         if horizontal:
             return FlowerClient(
                 model,
-                dset.horizontal_clients_dataset[clientID][0],
-                dset.horizontal_clients_dataset[clientID][1],
-                dset.horizontal_clients_dataset[clientID][2],
-                dset.horizontal_clients_dataset[clientID][3]
+                horizontalData[clientID][0],
+                horizontalData[clientID][1],
+                horizontalData[clientID][2],
+                horizontalData[clientID][3]
             )
         else:
             return FlowerClient(
                 model,
-                dset.vertical_clients_dataset[clientID][0],
-                dset.vertical_clients_dataset[clientID][1],
-                dset.vertical_clients_dataset[clientID][2],
-                dset.vertical_clients_dataset[clientID][3]
+                verticalData[clientID][0],
+                verticalData[clientID][1],
+                verticalData[clientID][2],
+                verticalData[clientID][3]
             )
 
     return client_fn
@@ -93,13 +96,14 @@ def generate_client_fn(x_train, y_train, x_test, y_test, horizontal):
 strategy = fl.server.strategy.FedAvg(
     # fraction_fit=0.1,  # let's sample 10% of the client each round to do local training
     # fraction_evaluate=0.1,  # after each round, let's sample 20% of the clients to asses how well the global model is doing
-    min_available_clients=3  # total number of clients available in the experiment
+    min_available_clients=2  # total number of clients available in the experiment
     # evaluate_fn=get_evalulate_fn(testloader),
 )  # a callback to a function that the strategy can execute to evaluate the state of the global model on a centralised dataset
 
 history = fl.simulation.start_simulation(
-    client_fn=generate_client_fn(),  # a callback to construct a client
-    num_clients=5,  # total number of clients in the experiment
+    ray_init_args = {'num_cpus': 3},
+    client_fn=generate_client_fn(False),  # a callback to construct a client
+    num_clients=2,  # total number of clients in the experiment
     config=fl.server.ServerConfig(num_rounds=3),  # let's run for 10 rounds
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
 )

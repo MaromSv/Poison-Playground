@@ -47,6 +47,8 @@ class Dataset :
         return horizontal_clients_datasets
     
 
+
+
     def verticalDivideData(self):
 
         #Data division for vertical FL
@@ -71,12 +73,10 @@ class Dataset :
 
     def getDataSets(self, vertical):
         if vertical == True:
-            return self.horizontal_clients_datasets
-        else:
             return self.vertical_clients_datasets
+        else:
+            return self.horizontal_clients_datasets
     
-
-
 
 
 
@@ -95,16 +95,15 @@ def plot_images(images, labels):
 
 
 
-# data = Dataset(2)
+data = Dataset(2)
+x = data.getDataSets(True)
 
+# datasets = data.horizontalDivideData()
+datasets = data.verticalDivideData()
 
+# Plot images from the first client's dataset as an example
+client_0_images_train, client_0_labels_train, _, _ = datasets[0] #first client
+plot_images(client_0_images_train, client_0_labels_train)
 
-# # datasets = data.horizontalDivideData()
-# datasets = data.verticalDivideData()
-
-# # Plot images from the first client's dataset as an example
-# client_0_images_train, client_0_labels_train, _, _ = datasets[0] #first client
-# plot_images(client_0_images_train, client_0_labels_train)
-
-# client_0_images_train, client_0_labels_train, _, _ = datasets[1] #seccond client
-# plot_images(client_0_images_train, client_0_labels_train)
+client_0_images_train, client_0_labels_train, _, _ = datasets[1] #seccond client
+plot_images(client_0_images_train, client_0_labels_train)
