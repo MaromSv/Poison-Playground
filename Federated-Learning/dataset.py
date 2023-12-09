@@ -25,22 +25,23 @@ class Dataset :
 
     def horizontalDivideData(self):
         # # Shuffle the data to introduce randomness
-        indices = np.arange(len(self.x_train))
-        
+        indices_train = np.arange(len(self.x_train))
+        indices_test = np.arange(len(self.x_test))
 
         print(self.num_clients)
         # Split the data into num_clients parts
-        client_IDs = np.array_split(indices, self.num_clients)
-
+        client_indicies_train = np.array_split(indices_train, self.num_clients)
+        client_indicies_test = np.array_split(indices_test, self.num_clients)
 
         #Data division for horizontal FL
         horizontal_clients_datasets = []
         for client in range(self.num_clients):
-            client_index = client_IDs[client]
-            client_x_train = self.x_train[client_index]
-            client_y_train = self.y_train[client_index]
-            client_x_test = self.x_test[client_index]
-            client_y_test = self.y_test[client_index]
+            client_index_train = client_indicies_train[client]
+            client_index_test = client_indicies_test[client]
+            client_x_train = self.x_train[client_index_train]
+            client_y_train = self.y_train[client_index_train]
+            client_x_test = self.x_test[client_index_test]
+            client_y_test = self.y_test[client_index_test]
 
             horizontal_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
         return horizontal_clients_datasets
@@ -48,28 +49,23 @@ class Dataset :
 
     def verticalDivideData(self):
 
-        # Shuffle the data to introduce randomness
-        indices = np.arange(len(self.x_train))
-        np.random.shuffle(indices)
-
-
         #Data division for vertical FL
         num_features = self.x_train.shape[1] #Here we refer to a feature as a row of pixels
         
-        feature_names_indicies = list(range(num_features)) 
+        feature_indicies = np.arange(num_features)
         
         #Assign features to each client, such that each client has around the same number of features
-        clients_features = np.array_split(feature_names_indicies, self.num_clients)
+        clients_features = np.array_split(feature_indicies, self.num_clients)
 
-        horizontal_clients_datasets = []
+        vertical_clients_datasets = []
         for client in range(self.num_clients):
             client_features = clients_features[client]
             client_x_train = self.x_train[:][client_features]
-            client_y_train = self.y_train[:][client_features]
-            client_x_test = self.x_test[:][client_features]
-            client_y_test = self.y_test[:][client_features]
-            horizontal_clients_datasets.append((client_x_train, client_y_train, client_y_test, client_y_test))
-        return horizontal_clients_datasets
+            client_y_train = self.y_train[:][:]
+            client_x_test = self.x_test[:][:]
+            client_y_test = self.y_test[:][:]
+            vertical_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
+        return vertical_clients_datasets
 
 
     #Call this method to get your data as a client!
@@ -86,6 +82,6 @@ class Dataset :
 
 
 
-# data = Dataset(20)
-# print(data.verticalDivideData())
-
+data = Dataset(20)
+# print(data.horizontalDivideData())
+print(data.verticalDivideData())
