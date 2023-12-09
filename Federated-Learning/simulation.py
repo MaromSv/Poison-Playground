@@ -10,7 +10,7 @@ horizontalData = dataInstance.getDataSets(not vertical)
 verticalData= dataInstance.getDataSets(vertical)
 
 if vertical:
-    imageShape= ()
+    imageShape= (14,28)
 else:
     imageShape = (28, 28)
 
@@ -24,7 +24,7 @@ else:
 
 
 model = keras.Sequential([
-    keras.layers.Flatten(input_shape=(28,28)),
+    keras.layers.Flatten(input_shape=imageShape),
     keras.layers.Dense(128, activation='relu'),
     keras.layers.Dense(256, activation='relu'),
     keras.layers.Dense(10, activation='softmax')
