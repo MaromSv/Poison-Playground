@@ -5,6 +5,7 @@ import pickle
 import tensorflow as tf
 from tensorflow import keras
 
+
 class Dataset : 
     def __init__(self, num_clients):
         #Seed so that results are reproducible
@@ -26,9 +27,11 @@ class Dataset :
     def horizontalDivideData(self):
         # # Shuffle the data to introduce randomness
         indices_train = np.arange(len(self.x_train))
+        np.random.shuffle(indices_train)
         indices_test = np.arange(len(self.x_test))
+        np.random.shuffle(indices_test)
+        # print(self.num_clients)
 
-        print(self.num_clients)
         # Split the data into num_clients parts
         client_indicies_train = np.array_split(indices_train, self.num_clients)
         client_indicies_test = np.array_split(indices_test, self.num_clients)
@@ -53,17 +56,19 @@ class Dataset :
         num_features = self.x_train.shape[1] #Here we refer to a feature as a row of pixels
         
         feature_indicies = np.arange(num_features)
-        
+        # np.random.shuffle(feature_indicies)
+        # print(self.x_train.shape)
         #Assign features to each client, such that each client has around the same number of features
         clients_features = np.array_split(feature_indicies, self.num_clients)
-
+        print(clients_features)
         vertical_clients_datasets = []
         for client in range(self.num_clients):
             client_features = clients_features[client]
-            client_x_train = self.x_train[:][client_features]
-            client_y_train = self.y_train[:][:]
-            client_x_test = self.x_test[:][:]
-            client_y_test = self.y_test[:][:]
+            client_x_train = self.x_train[:, client_features]
+            print(client_x_train.shape)
+            client_y_train = self.y_train
+            client_x_test = self.x_test[:, client_features]
+            client_y_test = self.y_test
             vertical_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
         return vertical_clients_datasets
 
@@ -79,9 +84,30 @@ class Dataset :
 
 
 
+def plot_images(images, labels):
+    num_images = min(5, len(images))  # Change 5 to the desired number of images to plot
+    fig, axes = plt.subplots(1, num_images, figsize=(12, 3))
+
+    for i in range(num_images):
+        axes[i].imshow(images[i], cmap='gray')  # Assuming grayscale images, adjust cmap accordingly
+        axes[i].set_title(f"Label: {labels[i]}")
+        axes[i].axis('off')
+
+    plt.show()
 
 
 
-data = Dataset(20)
-# print(data.horizontalDivideData())
-print(data.verticalDivideData())
+
+
+data = Dataset(2)
+
+
+
+# Assuming you have an instance of your class and you've called the horizontalDivideData function
+# Replace 'your_instance' with the actual instance of your class
+datasets = data.horizontalDivideData()
+datasets = data.verticalDivideData()
+
+# Plot images from the first client's dataset as an example
+client_0_images_train, client_0_labels_train, _, _ = datasets[0] #first client
+plot_images(client_0_images_train, client_0_labels_train)
