@@ -4,10 +4,10 @@ import flwr as fl
 from dataset import Dataset
 
 numOfClients = 2
-vertical = True
+vertical = False
 dataInstance = Dataset(numOfClients)
-horizontalData = dataInstance.getDataSets(not vertical)
-verticalData= dataInstance.getDataSets(vertical)
+horizontalData = dataInstance.getDataSets(False)
+verticalData= dataInstance.getDataSets(True)
 
 if vertical:
     imageShape= (14,28)
@@ -29,7 +29,24 @@ model = keras.Sequential([
     keras.layers.Dense(256, activation='relu'),
     keras.layers.Dense(10, activation='softmax')
 ])
-model.compile("adam", "sparse_categorical_crossentropy", metrics=["accuracy"])
+model.compile("adam", "sparse_categorical_crossentropy", 
+              # Multiclass classification metrics:
+              metrics=["accuracy",
+                    #    "categorical_accuracy",
+                    #    "top_k_categorical_accuracy",
+                    #    "sparse_categorical_accuracy", 
+                    #    "precision",
+                    #    "recall",
+                    #    "f1_score",
+              # Regression metrics
+                       "mean_absolute_error",
+                       "mean_squared_error",
+                    #    "mean_squared_logarithmic_error",
+                    #    "mean_absolute_percentage_error",
+                    #    "root_mean_squared_error",
+                    #    "r2_score"
+                       ])
+              # More metrics: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
 #TODO:pottential paramater: modle i.e sgd, adam, etc.
 
 class FlowerClient(fl.client.NumPyClient):
@@ -67,27 +84,25 @@ class FlowerClient(fl.client.NumPyClient):
 #             model, dset.vertical_clients_dataset[clientID][0], dset.vertical_clients_dataset[clientID][1], dset.x_test, dset.y_test
 #         )
 
-def generate_client_fn(horizontal):
+def generate_client_fn(vertical):
     def client_fn(clientID):
         """Returns a FlowerClient containing the cid-th data partition"""
         clientID = int(clientID)
-        # NOTE:!!!!!!!
-        # Not sure where the client's test data is, where?
-        if horizontal:
-            return FlowerClient(
-                model,
-                horizontalData[clientID][0],
-                horizontalData[clientID][1],
-                horizontalData[clientID][2],
-                horizontalData[clientID][3]
-            )
-        else:
+        if vertical:
             return FlowerClient(
                 model,
                 verticalData[clientID][0],
                 verticalData[clientID][1],
                 verticalData[clientID][2],
                 verticalData[clientID][3]
+            )
+        else:
+            return FlowerClient(
+                model,
+                horizontalData[clientID][0],
+                horizontalData[clientID][1],
+                horizontalData[clientID][2],
+                horizontalData[clientID][3]
             )
 
     return client_fn
@@ -102,9 +117,9 @@ strategy = fl.server.strategy.FedAvg(
 
 history = fl.simulation.start_simulation(
     ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn(False),  # a callback to construct a client
+    client_fn=generate_client_fn(vertical),  # a callback to construct a client
     num_clients=2,  # total number of clients in the experiment
-    config=fl.server.ServerConfig(num_rounds=3),  # let's run for 10 rounds
+    config=fl.server.ServerConfig(num_rounds=1),  # let's run for 10 rounds
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
 )
 
