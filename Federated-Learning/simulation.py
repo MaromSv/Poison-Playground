@@ -2,12 +2,13 @@ import tensorflow as tf
 from tensorflow import keras
 import flwr as fl
 from dataset import Dataset
+import dataPoisoning
 
 modelType = "adam"
 epochs = 3
 batch_size = 32
 numOfClients = 2
-vertical = True
+vertical = False
 dataInstance = Dataset(numOfClients)
 horizontalData = dataInstance.getDataSets(False)
 verticalData= dataInstance.getDataSets(True)
@@ -72,8 +73,6 @@ def evaluate(self, parameters, config):
     
     return loss, additional_info
 
-    
-
 def generate_client_fn(data):
     def client_fn(clientID):
         """Returns a FlowerClient containing the cid-th data partition"""
@@ -89,6 +88,37 @@ def generate_client_fn(data):
 
     return client_fn
 
+def flipLables(training_data_labels, source, target):
+    flipped_training_data_labels = training_data_labels.copy()
+    for i, label in enumerate(training_data_labels):
+        if label == source:
+            flipped_training_data_labels[i] = target
+    return flipped_training_data_labels
+
+def generate_client_fn_dpAttack(data, mal_clients, source, target):
+    def client_fn(clientID):
+        """Returns a FlowerClient containing the cid-th data partition"""
+        clientID = int(clientID)
+        if clientID < mal_clients: #Malicious client
+  
+            return FlowerClient(
+                model,
+                data[clientID][0],
+                flipLables(data[clientID][1], source, target), #We only flip the labels of the training data
+                data[clientID][2],
+                data[clientID][3]
+            )
+        else: #Normal client
+            return FlowerClient(
+                model,
+                data[clientID][0],
+                data[clientID][1],
+                data[clientID][2],
+                data[clientID][3]
+            )
+
+    return client_fn
+
 # now we can define the strategy
 strategy = fl.server.strategy.FedAvg(
     # fraction_fit=0.1,  # let's sample 10% of the client each round to do local training
@@ -99,7 +129,7 @@ strategy = fl.server.strategy.FedAvg(
 
 history = fl.simulation.start_simulation(
     ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn(verticalData),  # a callback to construct a client
+    client_fn=generate_client_fn_dpAttack(horizontalData, 1, 1, 8),  # a callback to construct a client
     num_clients=2,  # total number of clients in the experiment
     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
