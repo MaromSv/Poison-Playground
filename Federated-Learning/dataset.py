@@ -101,7 +101,7 @@ datasets = data.verticalDivideData()
 
 # # Plot images from the first client's dataset as an example
 client_0_images_train, client_0_labels_train, _, _ = datasets[0] #first client
-
+print(client_0_labels_train)
 
 # plot_images(client_0_images_train, client_0_labels_train)
 

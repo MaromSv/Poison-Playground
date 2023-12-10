@@ -74,26 +74,18 @@ def evaluate(self, parameters, config):
 
     
 
-def generate_client_fn(vertical):
+def generate_client_fn(data):
     def client_fn(clientID):
         """Returns a FlowerClient containing the cid-th data partition"""
         clientID = int(clientID)
-        if vertical:
-            return FlowerClient(
-                model,
-                verticalData[clientID][0],
-                verticalData[clientID][1],
-                verticalData[clientID][2],
-                verticalData[clientID][3]
-            )
-        else:
-            return FlowerClient(
-                model,
-                horizontalData[clientID][0],
-                horizontalData[clientID][1],
-                horizontalData[clientID][2],
-                horizontalData[clientID][3]
-            )
+        return FlowerClient(
+            model,
+            data[clientID][0],
+            data[clientID][1],
+            data[clientID][2],
+            data[clientID][3]
+        )
+
 
     return client_fn
 
@@ -107,7 +99,7 @@ strategy = fl.server.strategy.FedAvg(
 
 history = fl.simulation.start_simulation(
     ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn(vertical),  # a callback to construct a client
+    client_fn=generate_client_fn(verticalData),  # a callback to construct a client
     num_clients=2,  # total number of clients in the experiment
     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
