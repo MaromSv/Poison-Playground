@@ -18,12 +18,7 @@ else:
 
 
 
-
 # Creates an instance of the dataset class
-
-
-
-
 
 model = keras.Sequential([
     keras.layers.Flatten(input_shape=imageShape),
@@ -49,7 +44,7 @@ model.compile("adam", "sparse_categorical_crossentropy",
                     #    "r2_score"
                        ])
               # More metrics: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
-#TODO:pottential paramater: modle i.e sgd, adam, etc.
+#TODO:pottential paramater: model i.e sgd, adam, etc.
 
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self, model, x_train, y_train, x_test, y_test):
