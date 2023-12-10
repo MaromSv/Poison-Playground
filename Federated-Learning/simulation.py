@@ -3,6 +3,7 @@ from tensorflow import keras
 import flwr as fl
 from dataset import Dataset
 
+modelType = "adam"
 epochs = 3
 batch_size = 32
 numOfClients = 2
@@ -26,7 +27,7 @@ model = keras.Sequential([
     keras.layers.Dense(256, activation='relu'),
     keras.layers.Dense(10, activation='softmax')
 ])
-model.compile("adam", "sparse_categorical_crossentropy", 
+model.compile(modelType, "sparse_categorical_crossentropy", 
               # Multiclass classification metrics:
               metrics=["accuracy",
                     #    "categorical_accuracy",
@@ -44,7 +45,7 @@ model.compile("adam", "sparse_categorical_crossentropy",
                     #    "r2_score"
                        ])
               # More metrics: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
-#TODO:pottential paramater: model i.e sgd, adam, etc.
+
 
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self, model, x_train, y_train, x_test, y_test):
