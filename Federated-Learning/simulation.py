@@ -3,8 +3,10 @@ from tensorflow import keras
 import flwr as fl
 from dataset import Dataset
 
+epochs = 3
+batch_size = 32
 numOfClients = 2
-vertical = False
+vertical = True
 dataInstance = Dataset(numOfClients)
 horizontalData = dataInstance.getDataSets(False)
 verticalData= dataInstance.getDataSets(True)
@@ -62,27 +64,19 @@ class FlowerClient(fl.client.NumPyClient):
     # config: a dictionary of strings to a scalar/number
     def fit(self, parameters, config): 
         self.model.set_weights(parameters)
-        self.model.fit(self.x_train, self.y_train, epochs=1, batch_size=32)
+        self.model.fit(self.x_train, self.y_train, epochs=epochs, batch_size=batch_size)
         return self.model.get_weights(), len(self.x_train), {} # dictionary is empty, but can include metrics that we want to return to the server, like accuracy
 
-    def evaluate(self, parameters, config):
-        self.model.set_weights(parameters)
-        loss, accuracy = self.model.evaluate(self.x_test, self.y_test)
-        return loss, len(self.x_test), {"accuracy": accuracy} # here the dictionary actually contains the accuracy since we calculated it here
-    
 
-# Returns a FlowerClient containing the clientID-th data partition
-# def getClientData(clientID, horizontal):
-#     # NOTE:!!!!!!!
-#     # Not sure where the client's test data is, where?
-#     if horizontal:
-#         return FlowerClient(
-#             model, dset.horizontal_clients_dataset[clientID][0], dset.horizontal_clients_dataset[clientID][1]
-#         )
-#     else:
-#         return FlowerClient(
-#             model, dset.vertical_clients_dataset[clientID][0], dset.vertical_clients_dataset[clientID][1], dset.x_test, dset.y_test
-#         )
+def evaluate(self, parameters, config):
+    self.model.set_weights(parameters)
+    loss, accuracy = self.model.evaluate(self.x_test, self.y_test)
+    
+    additional_info = {"accuracy": accuracy, "other_info": "some_value"}
+    
+    return loss, additional_info
+
+    
 
 def generate_client_fn(vertical):
     def client_fn(clientID):
@@ -119,7 +113,7 @@ history = fl.simulation.start_simulation(
     ray_init_args = {'num_cpus': 3},
     client_fn=generate_client_fn(vertical),  # a callback to construct a client
     num_clients=2,  # total number of clients in the experiment
-    config=fl.server.ServerConfig(num_rounds=1),  # let's run for 10 rounds
+    config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
 )
 

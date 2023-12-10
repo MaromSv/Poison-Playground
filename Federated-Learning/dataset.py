@@ -59,12 +59,10 @@ class Dataset :
         # print(self.x_train.shape)
         #Assign features to each client, such that each client has around the same number of features
         clients_features = np.array_split(feature_indicies, self.num_clients)
-        print(clients_features)
         vertical_clients_datasets = []
         for client in range(self.num_clients):
             client_features = clients_features[client]
             client_x_train = self.x_train[:, client_features]
-            print(client_x_train.shape)
             client_y_train = self.y_train
             client_x_test = self.x_test[:, client_features]
             client_y_test = self.y_test
@@ -98,12 +96,14 @@ def plot_images(images, labels):
 data = Dataset(2)
 x = data.getDataSets(True)
 
-# datasets = data.horizontalDivideData()
+# # datasets = data.horizontalDivideData()
 datasets = data.verticalDivideData()
 
-# Plot images from the first client's dataset as an example
+# # Plot images from the first client's dataset as an example
 client_0_images_train, client_0_labels_train, _, _ = datasets[0] #first client
-plot_images(client_0_images_train, client_0_labels_train)
 
-client_0_images_train, client_0_labels_train, _, _ = datasets[1] #seccond client
-plot_images(client_0_images_train, client_0_labels_train)
+
+# plot_images(client_0_images_train, client_0_labels_train)
+
+# client_0_images_train, client_0_labels_train, _, _ = datasets[1] #seccond client
+# plot_images(client_0_images_train, client_0_labels_train)
