@@ -24,9 +24,9 @@ class Dataset :
     def horizontalDivideData(self):
         # # Shuffle the data to introduce randomness
         indices_train = np.arange(len(self.x_train))
-        np.random.shuffle(indices_train)
+        # np.random.shuffle(indices_train)
         indices_test = np.arange(len(self.x_test))
-        np.random.shuffle(indices_test)
+        # np.random.shuffle(indices_test)
         # print(self.num_clients)
 
         # Split the data into num_clients parts
@@ -93,17 +93,18 @@ def plot_images(images, labels):
 
 
 
-data = Dataset(2)
+data = Dataset(3)
 x = data.getDataSets(True)
 
 # # datasets = data.horizontalDivideData()
-datasets = data.verticalDivideData()
+datasets = data.horizontalDivideData()
 
 # # Plot images from the first client's dataset as an example
 client_0_images_train, client_0_labels_train, _, _ = datasets[0] #first client
-print(client_0_labels_train)
+# print(client_0_labels_train)
 
-# plot_images(client_0_images_train, client_0_labels_train)
+plot_images(client_0_images_train, client_0_labels_train)
 
-# client_0_images_train, client_0_labels_train, _, _ = datasets[1] #seccond client
-# plot_images(client_0_images_train, client_0_labels_train)
+client_0_images_train, client_0_labels_train, _, _ = datasets[1] #seccond client
+plot_images(client_0_images_train, client_0_labels_train)
+

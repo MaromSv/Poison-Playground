@@ -5,6 +5,9 @@ import flwr as fl
 from parameters import Parameters
 from modelPoisoning import ModelPoisoning
 from client import FlowerClient
+from sklearn.metrics import confusion_matrix
+import numpy as np
+
 
 params = Parameters()
 modelType = params.modelType
@@ -86,12 +89,26 @@ class FlowerClient(fl.client.NumPyClient):
         return self.model.get_weights(), len(self.x_train), {} # dictionary is empty, but can include metrics that we want to return to the server, like accuracy
 
 
+    # def evaluate(self, parameters, config):
+    #     self.model.set_weights(parameters)
+    #     loss, accuracy = self.model.evaluate(self.x_test, self.y_test)
+        
+    #     additional_info = {"accuracy": accuracy, "other_info": "some_value"}
+    #     return loss, additional_info
     def evaluate(self, parameters, config):
         self.model.set_weights(parameters)
-        loss, accuracy = self.model.evaluate(self.x_test, self.y_test)
-        
+        predictions = np.argmax(self.model.predict(self.x_test), axis=1)
+
+        # Assuming labels are not one-hot encoded
+        true_labels = self.y_test
+
+        confusion_mat = confusion_matrix(true_labels, predictions)
+        print("Confusion Matrix:\n", confusion_mat)
+
+        accuracy = np.sum(np.diag(confusion_mat)) / np.sum(confusion_mat)
         additional_info = {"accuracy": accuracy, "other_info": "some_value"}
-        return loss, additional_info
+        return accuracy, additional_info
+    
 
 def generate_client_fn(data):
     def client_fn(clientID):
@@ -201,7 +218,7 @@ strategy = fl.server.strategy.FedAvg(
 # mpAttack = ModelPoisoning(params.imageShape[0], params.imageShape[1])
 history_mpAttack = fl.simulation.start_simulation(
     ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn_mpAttack(params.horizontalData, model, 1),  # a callback to construct a client
+    client_fn=generate_client_fn(horizontalData),  # a callback to construct a client
     num_clients=2,  # total number of clients in the experiment
     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
