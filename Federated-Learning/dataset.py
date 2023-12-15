@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from PIL import Image
 
 
 class Dataset : 
@@ -19,6 +20,8 @@ class Dataset :
         self.horizontal_clients_datasets = self.horizontalDivideData()
 
         self.vertical_clients_datasets = self.verticalDivideData()
+
+
 
 
     def horizontalDivideData(self):
@@ -47,16 +50,39 @@ class Dataset :
         return horizontal_clients_datasets
     
 
+    #Resizes images using anti-aliasing, ensures that the images will be of a size that is divisible by number of clients
+    def resizeImages(self):
+        currentSize = (self.x_train.shape[1], self.x_train.shape[2])
+        new_length = self.x_train.shape[1] + (self.num_clients - self.x_train.shape[1] % self.num_clients) % self.num_clients
+        new_size = (new_length, new_length)
+
+        print(new_size)
+        x_train_resized = []
+        
+        for i in range(self.x_train.shape[0]):
+            original_image = self.x_train[i]
+            resized_image = np.array(Image.fromarray(original_image).resize(new_size, Image.ANTIALIAS))
+            x_train_resized.append(resized_image)  # Use append instead of np.append
+
+        x_test_resized = []
+        for i in range(self.x_test.shape[0]):
+            original_image = self.x_test[i]
+            resized_image = np.array(Image.fromarray(original_image).resize(new_size, Image.ANTIALIAS))
+            x_test_resized.append(resized_image)  # Use append instead of np.append
+
+        return x_train_resized, x_test_resized
+
+
 
 
     def verticalDivideData(self):
+        #Resize the images so that each client gets equal sized piece
+        self.x_train, self.x_test = self.resizeImages()
 
-        #Data division for vertical FL
         num_features = self.x_train.shape[1] #Here we refer to a feature as a row of pixels
         
         feature_indicies = np.arange(num_features)
-        # np.random.shuffle(feature_indicies) #TODO: Should we shuffle? Should we not? Maybe make it a parameter
-        # print(self.x_train.shape)
+
         #Assign features to each client, such that each client has around the same number of features
         clients_features = np.array_split(feature_indicies, self.num_clients)
         vertical_clients_datasets = []
@@ -69,6 +95,7 @@ class Dataset :
             vertical_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
         return vertical_clients_datasets
 
+
     def getDataSets(self, vertical):
         if vertical == True:
             return self.vertical_clients_datasets
@@ -77,7 +104,7 @@ class Dataset :
     
 
 
-
+#Use this to visualize the paritioning
 def plot_images(images, labels):
     num_images = min(5, len(images))  # Plot first 5 images
     fig, axes = plt.subplots(1, num_images, figsize=(12, 3))
