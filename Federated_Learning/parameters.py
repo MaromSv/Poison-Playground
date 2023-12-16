@@ -1,12 +1,17 @@
-from dataset import Dataset
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+from Federated_Learning.dataset import Dataset
 
 class Parameters:
     def __init__(self):
         self.modelType = "adam"
         self.epochs = 3
         self.batch_size = 32
-        self.numOfClients = 3
-        self.vertical = True
+        self.numOfClients = 2
+        self.malClients = 1
+        self.vertical = False
         dataInstance = Dataset(self.numOfClients)
         self.horizontalData = dataInstance.getDataSets(False)
         self.verticalData= dataInstance.getDataSets(True)

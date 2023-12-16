@@ -9,6 +9,3 @@ def flipLables(training_data_labels, source, target):
 
 
 
-# training_data_labels = [1, 2, 2, 2, 2, 3, 4, 5, 6, 6, 7, 8, 9, 9, 2, 3, 4, 5, 6, 7, 8,]
-# attack = DataPoisoningAttack()
-# print(attack.flipLables(training_data_labels, 2, 10))
