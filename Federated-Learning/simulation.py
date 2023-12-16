@@ -7,6 +7,7 @@ from modelPoisoning import ModelPoisoning
 from client import FlowerClient
 from sklearn.metrics import confusion_matrix
 import numpy as np
+import copy
 
 
 params = Parameters()
@@ -72,45 +73,45 @@ model.compile(modelType, "sparse_categorical_crossentropy",
               # More metrics: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
 
 
-class FlowerClient(fl.client.NumPyClient):
-    def __init__(self, model, x_train, y_train, x_test, y_test):
-        self.model = model
-        self.x_train, self.y_train, self.x_test, self.y_test = x_train, y_train, x_test, y_test
+# class FlowerClient(fl.client.NumPyClient):
+#     def __init__(self, model, x_train, y_train, x_test, y_test):
+#         self.model = model
+#         self.x_train, self.y_train, self.x_test, self.y_test = x_train, y_train, x_test, y_test
 
-    def get_parameters(self, config):
-        return self.model.get_weights()
+#     def get_parameters(self, config):
+#         return self.model.get_weights()
 
-    # Parameters:
-    # parameters: the parameters sent from the server for a certain round
-    # config: a dictionary of strings to a scalar/number
-    def fit(self, parameters, config): 
-        self.model.set_weights(parameters)
-        self.model.fit(self.x_train, self.y_train, epochs=epochs, batch_size=batch_size)
-        return self.model.get_weights(), len(self.x_train), {} # dictionary is empty, but can include metrics that we want to return to the server, like accuracy
+#     # Parameters:
+#     # parameters: the parameters sent from the server for a certain round
+#     # config: a dictionary of strings to a scalar/number
+#     def fit(self, parameters, config): 
+#         self.model.set_weights(parameters)
+#         self.model.fit(self.x_train, self.y_train, epochs=epochs, batch_size=batch_size)
+#         return self.model.get_weights(), len(self.x_train), {} # dictionary is empty, but can include metrics that we want to return to the server, like accuracy
 
 
-    # def evaluate(self, parameters, config):
-    #     self.model.set_weights(parameters)
-    #     loss, accuracy = self.model.evaluate(self.x_test, self.y_test)
+#     # def evaluate(self, parameters, config):
+#     #     self.model.set_weights(parameters)
+#     #     loss, accuracy = self.model.evaluate(self.x_test, self.y_test)
         
-    #     additional_info = {"accuracy": accuracy, "other_info": "some_value"}
-    #     return loss, additional_info
-    def evaluate(self, parameters, config):
-        self.model.set_weights(parameters)
-        predictions = np.argmax(self.model.predict(self.x_test), axis=1)
+#     #     additional_info = {"accuracy": accuracy, "other_info": "some_value"}
+#     #     return loss, additional_info
+#     def evaluate(self, parameters, config):
+#         self.model.set_weights(parameters)
+#         predictions = np.argmax(self.model.predict(self.x_test), axis=1)
 
-        # Assuming labels are not one-hot encoded
-        true_labels = self.y_test
+#         # Assuming labels are not one-hot encoded
+#         true_labels = self.y_test
 
-        confusion_mat = confusion_matrix(true_labels, predictions)
-        print("Confusion Matrix:\n", confusion_mat)
+#         confusion_mat = confusion_matrix(true_labels, predictions)
+#         print("Confusion Matrix:\n", confusion_mat)
 
         
-        accuracy = np.sum(np.diag(confusion_mat)) / np.sum(confusion_mat)
-        additional_info = {"accuracy": accuracy, "other_info": "some_value"}
+#         accuracy = np.sum(np.diag(confusion_mat)) / np.sum(confusion_mat)
+#         additional_info = {"accuracy": accuracy, "other_info": "some_value"}
 
-        #TODO: replace 10 with number of data points in batch
-        return accuracy, 10, additional_info
+#         #TODO: replace 10 with number of data points in batch
+#         return accuracy, 10, additional_info
     
 
 def generate_client_fn(data):
@@ -129,8 +130,8 @@ def generate_client_fn(data):
     return client_fn
 
 def flipLables(training_data_labels, source, target):
-    flipped_training_data_labels = training_data_labels.copy()
-    for i, label in enumerate(training_data_labels):
+    flipped_training_data_labels = copy.deepcopy(training_data_labels)
+    for i, label in enumerate(flipped_training_data_labels):
         if label == source:
             flipped_training_data_labels[i] = target
     return flipped_training_data_labels
@@ -202,13 +203,13 @@ strategy = fl.server.strategy.FedAvg(
     # evaluate_fn=get_evalulate_fn(testloader),
 )  # a callback to a function that the strategy can execute to evaluate the state of the global model on a centralised dataset
 
-# history_regular = fl.simulation.start_simulation(
-#     ray_init_args = {'num_cpus': 3},
-#     client_fn=generate_client_fn(horizontalData),  # a callback to construct a client
-#     num_clients=2,  # total number of clients in the experiment
-#     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
-#     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
-# )
+history_regular = fl.simulation.start_simulation(
+    ray_init_args = {'num_cpus': 3},
+    client_fn=generate_client_fn(horizontalData),  # a callback to construct a client
+    num_clients=2,  # total number of clients in the experiment
+    config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
+    strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
+)
 
 # history_dpAttack = fl.simulation.start_simulation(
 #     ray_init_args = {'num_cpus': 3},
@@ -219,10 +220,10 @@ strategy = fl.server.strategy.FedAvg(
 # )
 
 # mpAttack = ModelPoisoning(params.imageShape[0], params.imageShape[1])
-history_mpAttack = fl.simulation.start_simulation(
-    ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn(verticalData),  # a callback to construct a client
-    num_clients=2,  # total number of clients in the experiment
-    config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
-    strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
-)
+# history_mpAttack = fl.simulation.start_simulation(
+#     ray_init_args = {'num_cpus': 3},
+#     client_fn=generate_client_fn(verticalData),  # a callback to construct a client
+#     num_clients=2,  # total number of clients in the experiment
+#     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
+#     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
+# )
