@@ -3,6 +3,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from Federated_Learning.parameters import Parameters
 from Federated_Learning.client import FlowerClient
+from Federated_Learning.dataPoisoning import generate_client_fn_dpAttack
 from Federated_Learning.modelPoisoning import generate_client_fn_mpAttack
 
 import tensorflow as tf
@@ -78,39 +79,8 @@ model.compile(modelType, "sparse_categorical_crossentropy",
                        ])
               # More metrics: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
 
-def flipLables(training_data_labels, source, target):
-    flipped_training_data_labels = copy.deepcopy(training_data_labels)
-    for i, label in enumerate(flipped_training_data_labels):
-        if label == source:
-            flipped_training_data_labels[i] = target
-    return flipped_training_data_labels
 
-def generate_client_fn_dpAttack(data, mal_clients, source, target):
-    def client_fn(clientID):
-        """Returns a FlowerClient containing the cid-th data partition"""
-        clientID = int(clientID)
-        if clientID < mal_clients: #Malicious client
-  
-            return FlowerClient(
-                model,
-                data[clientID][0],
-                flipLables(data[clientID][1], source, target), #We only flip the labels of the training data
-                data[clientID][2],
-                data[clientID][3]
-            )
-        else: #Normal client
-            return FlowerClient(
-                model,
-                data[clientID][0],
-                data[clientID][1],
-                data[clientID][2],
-                data[clientID][3]
-            )
-
-    return client_fn
-
-
-# now we can define the strategy
+# Now we can define the strategy
 strategy = fl.server.strategy.FedAvg(
     # fraction_fit=0.1,  # let's sample 10% of the client each round to do local training
     # fraction_evaluate=0.1,  # after each round, let's sample 20% of the clients to asses how well the global model is doing
@@ -126,18 +96,18 @@ strategy = fl.server.strategy.FedAvg(
 #     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
 # )
 
-# history_dpAttack = fl.simulation.start_simulation(
-#     ray_init_args = {'num_cpus': 3},
-#     client_fn=generate_client_fn_dpAttack(data, 1, 1, 8),  # a callback to construct a client
-#     num_clients=2,  # total number of clients in the experiment
-#     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
-#     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
-# )
-
-history_mpAttack = fl.simulation.start_simulation(
+history_dpAttack = fl.simulation.start_simulation(
     ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn_mpAttack(data, model), # a callback to construct a client
-    num_clients=numOfClients,  # total number of clients in the experiment
+    client_fn=generate_client_fn_dpAttack(data, model, 1, 1, 8),  # a callback to construct a client
+    num_clients=2,  # total number of clients in the experiment
     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
 )
+
+# history_mpAttack = fl.simulation.start_simulation(
+#     ray_init_args = {'num_cpus': 3},
+#     client_fn=generate_client_fn_mpAttack(data, model), # a callback to construct a client
+#     num_clients=numOfClients,  # total number of clients in the experiment
+#     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
+#     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
+# )
