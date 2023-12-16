@@ -105,9 +105,12 @@ class FlowerClient(fl.client.NumPyClient):
         confusion_mat = confusion_matrix(true_labels, predictions)
         print("Confusion Matrix:\n", confusion_mat)
 
+        
         accuracy = np.sum(np.diag(confusion_mat)) / np.sum(confusion_mat)
         additional_info = {"accuracy": accuracy, "other_info": "some_value"}
-        return accuracy, additional_info
+
+        #TODO: replace 10 with number of data points in batch
+        return accuracy, 10, additional_info
     
 
 def generate_client_fn(data):
@@ -218,7 +221,7 @@ strategy = fl.server.strategy.FedAvg(
 # mpAttack = ModelPoisoning(params.imageShape[0], params.imageShape[1])
 history_mpAttack = fl.simulation.start_simulation(
     ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn(horizontalData),  # a callback to construct a client
+    client_fn=generate_client_fn(verticalData),  # a callback to construct a client
     num_clients=2,  # total number of clients in the experiment
     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline

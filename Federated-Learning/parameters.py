@@ -6,7 +6,7 @@ class Parameters:
         self.epochs = 3
         self.batch_size = 32
         self.numOfClients = 2
-        self.vertical = False
+        self.vertical = True
         dataInstance = Dataset(self.numOfClients)
         self.horizontalData = dataInstance.getDataSets(False)
         self.verticalData= dataInstance.getDataSets(True)

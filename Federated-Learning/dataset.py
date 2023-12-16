@@ -12,23 +12,29 @@ class Dataset :
          # Load dataset
         (self.x_train, self.y_train), (self.x_test, self.y_test) = tf.keras.datasets.mnist.load_data()
 
-        #Normalize values to be between [0, 1] instead of [0, 255]
-        self.x_train, self.x_test = self.x_train[..., np.newaxis]/255.0, self.x_test[..., np.newaxis]/255.0
-        
         self.num_clients = num_clients
 
-        self.horizontal_clients_datasets = self.horizontalDivideData()
+        self.horizontal_clients_datasets = self.horizontalDivideData(self.x_train, self.y_train, self.x_test,  self.y_test)
 
-        self.vertical_clients_datasets = self.verticalDivideData()
-
-
+        self.vertical_clients_datasets = self.verticalDivideData(self.x_train, self.y_train, self.x_test,  self.y_test)
 
 
-    def horizontalDivideData(self):
-        # # Shuffle the data to introduce randomness
-        indices_train = np.arange(len(self.x_train))
+    def normalizeData(self, x_train, x_test):
+        x_train = np.array(x_train)
+        x_test = np.array(x_test)
+        #Normalize values to be between [0, 1] instead of [0, 255]
+        normalized_x_train, normalized_x_test = x_train[..., np.newaxis]/255.0, x_test[..., np.newaxis]/255.0
+
+        return normalized_x_train, normalized_x_test
+
+    def horizontalDivideData(self, x_train, y_train, x_test, y_test):
+        #Normalize data
+        x_train, x_test = self.normalizeData(x_train, x_test)
+
+        indices_train = np.arange(len(x_train))
         # np.random.shuffle(indices_train)
-        indices_test = np.arange(len(self.x_test))
+
+        indices_test = np.arange(len(x_test))
         # np.random.shuffle(indices_test)
         # print(self.num_clients)
 
@@ -41,32 +47,32 @@ class Dataset :
         for client in range(self.num_clients):
             client_index_train = client_indicies_train[client]
             client_index_test = client_indicies_test[client]
-            client_x_train = self.x_train[client_index_train]
-            client_y_train = self.y_train[client_index_train]
-            client_x_test = self.x_test[client_index_test]
-            client_y_test = self.y_test[client_index_test]
+            client_x_train = x_train[client_index_train]
+            client_y_train = y_train[client_index_train]
+            client_x_test = x_test[client_index_test]
+            client_y_test = y_test[client_index_test]
 
             horizontal_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
         return horizontal_clients_datasets
     
 
     #Resizes images using anti-aliasing, ensures that the images will be of a size that is divisible by number of clients
-    def resizeImages(self):
-        currentSize = (self.x_train.shape[1], self.x_train.shape[2])
-        new_length = self.x_train.shape[1] + (self.num_clients - self.x_train.shape[1] % self.num_clients) % self.num_clients
+    def resizeImages(self, x_train, x_test):
+        currentSize = (x_train.shape[1], x_train.shape[2])
+        new_length = x_train.shape[1] + (self.num_clients - x_train.shape[1] % self.num_clients) % self.num_clients
         new_size = (new_length, new_length)
 
-        print(new_size)
+        print("Images resized to: " + str(new_size))
         x_train_resized = []
         
-        for i in range(self.x_train.shape[0]):
-            original_image = self.x_train[i]
+        for i in range(x_train.shape[0]):
+            original_image = x_train[i]
             resized_image = np.array(Image.fromarray(original_image).resize(new_size, Image.ANTIALIAS))
             x_train_resized.append(resized_image)  # Use append instead of np.append
 
         x_test_resized = []
-        for i in range(self.x_test.shape[0]):
-            original_image = self.x_test[i]
+        for i in range(x_test.shape[0]):
+            original_image = x_test[i]
             resized_image = np.array(Image.fromarray(original_image).resize(new_size, Image.ANTIALIAS))
             x_test_resized.append(resized_image)  # Use append instead of np.append
 
@@ -75,11 +81,14 @@ class Dataset :
 
 
 
-    def verticalDivideData(self):
+    def verticalDivideData(self, x_train, y_train, x_test, y_test):
         #Resize the images so that each client gets equal sized piece
-        self.x_train, self.x_test = self.resizeImages()
+        x_train, x_test = self.resizeImages(x_train, x_test)
 
-        num_features = self.x_train.shape[1] #Here we refer to a feature as a row of pixels
+        #Normalize the resized images
+        x_train, x_test = self.normalizeData(x_train, x_test)
+
+        num_features = x_train.shape[1] #Here we refer to a feature as a row of pixels
         
         feature_indicies = np.arange(num_features)
 
@@ -88,10 +97,10 @@ class Dataset :
         vertical_clients_datasets = []
         for client in range(self.num_clients):
             client_features = clients_features[client]
-            client_x_train = self.x_train[:, client_features]
-            client_y_train = self.y_train
-            client_x_test = self.x_test[:, client_features]
-            client_y_test = self.y_test
+            client_x_train = x_train[:, client_features]
+            client_y_train = y_train
+            client_x_test = x_test[:, client_features]
+            client_y_test = y_test
             vertical_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
         return vertical_clients_datasets
 
@@ -120,18 +129,18 @@ def plot_images(images, labels):
 
 
 
-data = Dataset(3)
-x = data.getDataSets(True)
+# data = Dataset(2)
+# x = data.getDataSets(True)
 
+# # # # datasets = data.horizontalDivideData()
 # # datasets = data.horizontalDivideData()
-datasets = data.horizontalDivideData()
 
-# # Plot images from the first client's dataset as an example
-client_0_images_train, client_0_labels_train, _, _ = datasets[0] #first client
-# print(client_0_labels_train)
+# # # Plot images from the first client's dataset as an example
+# client_0_images_train, client_0_labels_train, _, _ = x[0] #first client
+# # print(client_0_labels_train)
 
-plot_images(client_0_images_train, client_0_labels_train)
+# plot_images(client_0_images_train, client_0_labels_train)
 
-client_0_images_train, client_0_labels_train, _, _ = datasets[1] #seccond client
-plot_images(client_0_images_train, client_0_labels_train)
+# client_0_images_train, client_0_labels_train, _, _ = x[1] #seccond client
+# plot_images(client_0_images_train, client_0_labels_train)
 
