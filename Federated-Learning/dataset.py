@@ -14,9 +14,13 @@ class Dataset :
 
         self.num_clients = num_clients
 
+        self.verticalImageShape = (28, 28) #initialize image shape
+
         self.horizontal_clients_datasets = self.horizontalDivideData(self.x_train, self.y_train, self.x_test,  self.y_test)
 
         self.vertical_clients_datasets = self.verticalDivideData(self.x_train, self.y_train, self.x_test,  self.y_test)
+
+        
 
 
     def normalizeData(self, x_train, x_test):
@@ -59,21 +63,23 @@ class Dataset :
     #Resizes images using anti-aliasing, ensures that the images will be of a size that is divisible by number of clients
     def resizeImages(self, x_train, x_test):
         currentSize = (x_train.shape[1], x_train.shape[2])
-        new_length = x_train.shape[1] + (self.num_clients - x_train.shape[1] % self.num_clients) % self.num_clients
-        new_size = (new_length, new_length)
+        new_size = x_train.shape[1] + (self.num_clients - x_train.shape[1] % self.num_clients) % self.num_clients
+        new_shape= (new_size, new_size)
 
-        print("Images resized to: " + str(new_size))
+        divided_image_shape = (new_size//self.num_clients, new_size)
+        self.verticalImageShape = divided_image_shape
+
         x_train_resized = []
         
         for i in range(x_train.shape[0]):
             original_image = x_train[i]
-            resized_image = np.array(Image.fromarray(original_image).resize(new_size, Image.ANTIALIAS))
+            resized_image = np.array(Image.fromarray(original_image).resize(new_shape, Image.ANTIALIAS))
             x_train_resized.append(resized_image)  # Use append instead of np.append
 
         x_test_resized = []
         for i in range(x_test.shape[0]):
             original_image = x_test[i]
-            resized_image = np.array(Image.fromarray(original_image).resize(new_size, Image.ANTIALIAS))
+            resized_image = np.array(Image.fromarray(original_image).resize(new_shape, Image.ANTIALIAS))
             x_test_resized.append(resized_image)  # Use append instead of np.append
 
         return x_train_resized, x_test_resized
@@ -84,7 +90,7 @@ class Dataset :
     def verticalDivideData(self, x_train, y_train, x_test, y_test):
         #Resize the images so that each client gets equal sized piece
         x_train, x_test = self.resizeImages(x_train, x_test)
-
+        
         #Normalize the resized images
         x_train, x_test = self.normalizeData(x_train, x_test)
 
@@ -102,8 +108,11 @@ class Dataset :
             client_x_test = x_test[:, client_features]
             client_y_test = y_test
             vertical_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
+       
         return vertical_clients_datasets
 
+    def getImageShape(self):
+        return self.verticalImageShape
 
     def getDataSets(self, vertical):
         if vertical == True:

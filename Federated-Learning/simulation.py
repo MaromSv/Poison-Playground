@@ -15,9 +15,11 @@ epochs = params.epochs
 batch_size = params.batch_size
 numOfClients = params.numOfClients
 vertical = params.vertical
-horizontalData = params.horizontalData
-verticalData= params.verticalData
 imageShape = params.imageShape
+if vertical:
+    data = params.verticalData
+else:
+    data = params.horizontalData
 
 # Start of making simulation a class
 # class simulation():
@@ -198,7 +200,7 @@ def generate_client_fn_mpAttack(data, model, mal_clients):
 strategy = fl.server.strategy.FedAvg(
     # fraction_fit=0.1,  # let's sample 10% of the client each round to do local training
     # fraction_evaluate=0.1,  # after each round, let's sample 20% of the clients to asses how well the global model is doing
-    min_available_clients=2  # total number of clients available in the experiment
+    min_available_clients= numOfClients  # total number of clients available in the experiment
     # evaluate_fn=get_evalulate_fn(testloader),
 )  # a callback to a function that the strategy can execute to evaluate the state of the global model on a centralised dataset
 
@@ -221,8 +223,8 @@ strategy = fl.server.strategy.FedAvg(
 # mpAttack = ModelPoisoning(params.imageShape[0], params.imageShape[1])
 history_mpAttack = fl.simulation.start_simulation(
     ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn(verticalData),  # a callback to construct a client
-    num_clients=2,  # total number of clients in the experiment
+    client_fn=generate_client_fn(data),  # a callback to construct a client
+    num_clients=numOfClients,  # total number of clients in the experiment
     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
 )
