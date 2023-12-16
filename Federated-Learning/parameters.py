@@ -12,7 +12,7 @@ class Parameters:
         self.verticalData= dataInstance.getDataSets(True)
         if self.vertical:
             self.imageShape = dataInstance.getImageShape()
-            print("Image have been resized to: " + str(self.imageShape[1]))
+            print("Image have been resized to: " + str(self.imageShape[1]), str(self.imageShape[1]))
             print("Each client recieves: " + str(self.imageShape))
         else:
             self.imageShape = (28, 28)
