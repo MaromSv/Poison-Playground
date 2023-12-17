@@ -24,10 +24,10 @@ class FlowerClient(fl.client.NumPyClient):
     # config: a dictionary of strings to a scalar/number
     def fit(self, parameters, config): 
         self.model.set_weights(parameters)
-        self.model.fit(self.x_train, self.y_train, epochs=self.epochs, batch_size=self.batch_size)
+        self.model.fit(self.x_train, self.y_train, epochs=self.epochs) #, batch_size=self.batch_size
         return self.model.get_weights(), len(self.x_train), {} # dictionary is empty, but can include metrics that we want to return to the server, like accuracy
 
-
+    
     def evaluate(self, parameters, config):
         self.model.set_weights(parameters)
         loss, accuracy, *t = self.model.evaluate(self.x_test, self.y_test)

@@ -4,7 +4,7 @@ import tensorflow as tf
 from PIL import Image
 
 
-class Dataset : 
+class dataPartitioning : 
     def __init__(self, num_clients):
         #Seed so that results are reproducible
         np.random.seed(20)
@@ -19,6 +19,8 @@ class Dataset :
         self.horizontal_clients_datasets = self.horizontalDivideData(self.x_train, self.y_train, self.x_test,  self.y_test)
 
         self.vertical_clients_datasets = self.verticalDivideData(self.x_train, self.y_train, self.x_test,  self.y_test)
+        
+        self.globalTestData = (self.x_test, self.y_test)
 
         
 
@@ -120,6 +122,9 @@ class Dataset :
         else:
             return self.horizontal_clients_datasets
     
+    def getGlobalTestData(self):
+        return self.globalTestData
+    
 
 
 #Use this to visualize the paritioning
@@ -138,8 +143,12 @@ def plot_images(images, labels):
 
 
 
-# data = Dataset(2)
+# data = dataPartitioning(2)
 # x = data.getDataSets(True)
+
+# print(len(x[0]))
+# print(len(x[1]))
+
 
 # # # # datasets = data.horizontalDivideData()
 # # datasets = data.horizontalDivideData()
