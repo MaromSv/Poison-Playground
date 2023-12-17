@@ -5,6 +5,7 @@ from Federated_Learning.parameters import Parameters
 from Federated_Learning.client import FlowerClient
 from Federated_Learning.dataPoisoning import generate_client_fn_dpAttack
 from Federated_Learning.modelPoisoning import generate_client_fn_mpAttack
+# import Federated_Learning
 
 import tensorflow as tf
 from tensorflow import keras
@@ -79,6 +80,20 @@ model.compile(modelType, "sparse_categorical_crossentropy",
                        ])
               # More metrics: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
 
+def generate_client_fn(data):
+    def client_fn(clientID):
+        """Returns a FlowerClient containing the cid-th data partition"""
+        clientID = int(clientID)
+        return FlowerClient(
+            model,
+            data[clientID][0],
+            data[clientID][1],
+            data[clientID][2],
+            data[clientID][3]
+        )
+
+
+    return client_fn
 
 # Now we can define the strategy
 strategy = fl.server.strategy.FedAvg(
@@ -88,25 +103,25 @@ strategy = fl.server.strategy.FedAvg(
     # evaluate_fn=get_evalulate_fn(testloader),
 )  # a callback to a function that the strategy can execute to evaluate the state of the global model on a centralised dataset
 
-# history_regular = fl.simulation.start_simulation(
-#     ray_init_args = {'num_cpus': 3},
-#     client_fn=generate_client_fn(data),  # a callback to construct a client
-#     num_clients=2,  # total number of clients in the experiment
-#     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
-#     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
-# )
-
-history_dpAttack = fl.simulation.start_simulation(
+history_regular = fl.simulation.start_simulation(
     ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn_dpAttack(data, model, 1, 1, 8),  # a callback to construct a client
+    client_fn=generate_client_fn(data),  # a callback to construct a client
     num_clients=2,  # total number of clients in the experiment
     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
 )
 
+# history_dpAttack = fl.simulation.start_simulation(
+#     ray_init_args = {'num_cpus': 3},
+#     client_fn=Federated_Learning.generate_client_fn_dpAttack(data, model, 1, 1, 8),  # a callback to construct a client
+#     num_clients=2,  # total number of clients in the experiment
+#     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
+#     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
+# )
+
 # history_mpAttack = fl.simulation.start_simulation(
 #     ray_init_args = {'num_cpus': 3},
-#     client_fn=generate_client_fn_mpAttack(data, model), # a callback to construct a client
+#     client_fn=Federated_Learning.generate_client_fn_mpAttack(data, model), # a callback to construct a client
 #     num_clients=numOfClients,  # total number of clients in the experiment
 #     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
 #     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
