@@ -68,7 +68,8 @@ class dataPartitioning :
         new_size = x_train.shape[1] + (self.num_clients - x_train.shape[1] % self.num_clients) % self.num_clients
         new_shape= (new_size, new_size)
 
-        divided_image_shape = (new_size//self.num_clients, new_size)
+        divided_image_shape = (new_size, new_size//self.num_clients)
+        print(divided_image_shape)
         self.verticalImageShape = divided_image_shape
 
         x_train_resized = []
@@ -105,9 +106,9 @@ class dataPartitioning :
         vertical_clients_datasets = []
         for client in range(self.num_clients):
             client_features = clients_features[client]
-            client_x_train = x_train[:, client_features]
+            client_x_train = x_train[:, :, client_features]
             client_y_train = y_train
-            client_x_test = x_test[:, client_features]
+            client_x_test = x_test[:, :, client_features]
             client_y_test = y_test
             vertical_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
        
@@ -143,22 +144,24 @@ def plot_images(images, labels):
 
 
 
-# data = dataPartitioning(2)
-# x = data.getDataSets(True)
+data = dataPartitioning(28)
+x = data.getDataSets(True)
 
 # print(len(x[0]))
 # print(len(x[1]))
 
 
-# # # # datasets = data.horizontalDivideData()
-# # datasets = data.horizontalDivideData()
+# # # datasets = data.horizontalDivideData()
+# datasets = data.horizontalDivideData()
 
-# # # Plot images from the first client's dataset as an example
-# client_0_images_train, client_0_labels_train, _, _ = x[0] #first client
-# # print(client_0_labels_train)
+# # Plot images from the first client's dataset as an example
+client_0_images_train, client_0_labels_train, _, _ = x[16] #first client
+# print(client_0_labels_train)
 
-# plot_images(client_0_images_train, client_0_labels_train)
+plot_images(client_0_images_train, client_0_labels_train)
 
 # client_0_images_train, client_0_labels_train, _, _ = x[1] #seccond client
 # plot_images(client_0_images_train, client_0_labels_train)
 
+# client_0_images_train, client_0_labels_train, _, _ = x[2] #seccond client
+# plot_images(client_0_images_train, client_0_labels_train)

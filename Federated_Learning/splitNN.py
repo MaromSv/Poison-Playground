@@ -1,3 +1,5 @@
+import tensorflow as tf
+import numpy as np
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -19,6 +21,7 @@ from flwr.common import Metrics
 
 
 
+
 params = Parameters()
 modelType = params.modelType
 epochs = params.epochs
@@ -33,22 +36,87 @@ else:
 globalTestData = params.globalTestData
 
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
-def get_model():
-    """Constructs a simple model architecture suitable for MNIST."""
-    model = tf.keras.models.Sequential(
-        [
-            tf.keras.layers.Flatten(input_shape=imageShape),
-            tf.keras.layers.Dense(128, activation="relu"),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Dense(10, activation="softmax"),
-        ]
-    )
-    model.compile("adam", "sparse_categorical_crossentropy", metrics=["accuracy"])
-    return model
+class SplitNN:
+    def __init__(self, models, optimizers):
+        self.models = models
+        self.optimizers = optimizers
 
-# More metrics: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
+        self.data = []
+        self.remote_tensors = []
+
+    def forward(self, x):
+        data = []
+        remote_tensors = []
+
+        data.append(self.models[0](x))
+
+        if data[-1].location == self.models[1].location:
+            remote_tensors.append(data[-1].detach().requires_grad_())
+        else:
+            remote_tensors.append(
+                data[-1].detach().move(self.models[1].location).requires_grad_()
+            )
+
+        i = 1
+        while i < (len(self.models) - 1):
+            data.append(self.models[i](remote_tensors[-1]))
+
+            if data[-1].location == self.models[i + 1].location:
+                remote_tensors.append(data[-1].detach().requires_grad_())
+            else:
+                remote_tensors.append(
+                    data[-1].detach().move(self.models[i + 1].location).requires_grad_()
+                )
+
+            i += 1
+
+        data.append(self.models[i](remote_tensors[-1]))
+
+        self.data = data
+        self.remote_tensors = remote_tensors
+
+        return data[-1]
+
+    def backward(self):
+        for i in range(len(self.models) - 2, -1, -1):
+            if self.remote_tensors[i].location == self.data[i].location:
+                grads = self.remote_tensors[i].grad.copy()
+            else:
+                grads = self.remote_tensors[i].grad.copy().move(self.data[i].location)
+    
+            self.data[i].backward(grads)
+
+    def zero_grads(self):
+        for opt in self.optimizers:
+            opt.zero_grad()
+
+    def step(self):
+        for opt in self.optimizers:
+            opt.step()
+
+input_size = 784
+hidden_sizes = [128, 640]
+output_size = 10
+
+models = [
+    tf.keras.Sequential([
+        tf.keras.layers.Dense(hidden_sizes[0], input_shape=(input_size,), activation='relu'),
+        tf.keras.layers.Dense(hidden_sizes[1], activation='relu'),
+    ]),
+    tf.keras.Sequential([
+        tf.keras.layers.Dense(output_size, activation='softmax')
+    ])
+]
+
+# Create optimisers for each segment and link to them
+optimizers = [
+    tf.optimizers.SGD(learning_rate=0.03)
+    for model in models
+]
+
+def get_model(id):
+    return models[id]
 
 def generate_client_fn(data):
 
@@ -56,7 +124,7 @@ def generate_client_fn(data):
         """Returns a FlowerClient containing the cid-th data partition"""
         clientID = int(clientID)
         return FlowerClient(
-            get_model(),
+            get_model(clientID),
             data[clientID][0],
             data[clientID][1],
             data[clientID][2],
@@ -65,6 +133,35 @@ def generate_client_fn(data):
 
 
     return client_fn
+
+
+
+splitNN = SplitNN(models, optimizers)
+
+def train(x, target, splitNN):
+    
+    #1) Zero our grads
+    splitNN.zero_grads()
+    
+    #2) Make a prediction
+    pred = splitNN.forward(x)
+    
+    #3) Figure out how much we missed by
+    criterion = tf.NLLLoss()
+    loss = criterion(pred, target)
+    
+    #4) Backprop the loss on the end layer
+    loss.backward()
+    
+    #5) Feed Gradients backward through the nework
+    splitNN.backward()
+    
+    #6) Change the weights
+    splitNN.step()
+    
+    return loss, pred
+
+
 
 def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
     """Aggregation function for (federated) evaluation metrics.
@@ -124,19 +221,3 @@ history_regular = fl.simulation.start_simulation(
     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
 )
-
-# history_dpAttack = fl.simulation.start_simulation(
-#     ray_init_args = {'num_cpus': 3},
-#     client_fn=Federated_Learning.generate_client_fn_dpAttack(data, model, 1, 1, 8),  # a callback to construct a client
-#     num_clients=2,  # total number of clients in the experiment
-#     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
-#     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
-# )
-
-# history_mpAttack = fl.simulation.start_simulation(
-#     ray_init_args = {'num_cpus': 3},
-#     client_fn=Federated_Learning.generate_client_fn_mpAttack(data, model), # a callback to construct a client
-#     num_clients=numOfClients,  # total number of clients in the experiment
-#     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
-#     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
-# )
