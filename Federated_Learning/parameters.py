@@ -11,7 +11,7 @@ class Parameters:
         self.batch_size = 32
         self.numOfClients = 2
         self.malClients = 0
-        self.vertical = True
+        self.vertical = False
         dataInstance = dataPartitioning(self.numOfClients)
         self.horizontalData = dataInstance.getDataSets(False)
         self.verticalData= dataInstance.getDataSets(True)

@@ -144,8 +144,8 @@ def plot_images(images, labels):
 
 
 
-data = dataPartitioning(28)
-x = data.getDataSets(True)
+# data = dataPartitioning(28)
+# x = data.getDataSets(True)
 
 # print(len(x[0]))
 # print(len(x[1]))
@@ -154,11 +154,11 @@ x = data.getDataSets(True)
 # # # datasets = data.horizontalDivideData()
 # datasets = data.horizontalDivideData()
 
-# # Plot images from the first client's dataset as an example
-client_0_images_train, client_0_labels_train, _, _ = x[16] #first client
-# print(client_0_labels_train)
+# # # Plot images from the first client's dataset as an example
+# client_0_images_train, client_0_labels_train, _, _ = x[16] #first client
+# # print(client_0_labels_train)
 
-plot_images(client_0_images_train, client_0_labels_train)
+# plot_images(client_0_images_train, client_0_labels_train)
 
 # client_0_images_train, client_0_labels_train, _, _ = x[1] #seccond client
 # plot_images(client_0_images_train, client_0_labels_train)
