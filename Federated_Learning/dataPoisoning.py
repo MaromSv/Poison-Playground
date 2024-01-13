@@ -4,6 +4,18 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from Federated_Learning.client import FlowerClient
+from Federated_Learning.simulation import run_simulation
+from Federated_Learning.simulation import get_model
+from Federated_Learning.parameters import Parameters
+
+model = get_model()
+params = Parameters()
+malClients = params.malClients
+vertical = params.vertical
+if vertical:
+    data = params.verticalData
+else:
+    data = params.horizontalData
 
 def flipLables(training_data_labels, source, target):
     flipped_training_data_labels = training_data_labels.copy()
@@ -12,11 +24,11 @@ def flipLables(training_data_labels, source, target):
             flipped_training_data_labels[i] = target
     return flipped_training_data_labels
 
-def generate_client_fn_dpAttack(data, model, mal_clients, source, target):
+def generate_client_fn_dpAttack(data, model, malClients, source, target):
     def client_fn(clientID):
         """Returns a FlowerClient containing the cid-th data partition"""
         clientID = int(clientID)
-        if clientID < mal_clients: #Malicious client
+        if clientID < malClients: #Malicious client
   
             return FlowerClient(
                 model,
@@ -35,3 +47,6 @@ def generate_client_fn_dpAttack(data, model, mal_clients, source, target):
             )
 
     return client_fn
+
+
+run_simulation(generate_client_fn_dpAttack, data, model, malClients, source=0, target=1)

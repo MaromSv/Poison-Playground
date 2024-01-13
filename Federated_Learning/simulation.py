@@ -1,14 +1,16 @@
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+# Imports from our codebase
 from Federated_Learning.parameters import Parameters
 from Federated_Learning.client import FlowerClient
-import seaborn as sns  # Import seaborn
-import matplotlib.pyplot as plt  # Import matplotlib.pyplot
 # from Federated_Learning.dataPoisoning import generate_client_fn_dpAttack
 # from Federated_Learning.modelPoisoning import generate_client_fn_mpAttack
-# import Federated_Learning
 
+# Imports of needed libraries
+import seaborn as sns
+import matplotlib.pyplot as plt 
 import tensorflow as tf
 from tensorflow import keras
 from keras.initializers import RandomNormal
@@ -18,7 +20,6 @@ import numpy as np
 import copy
 from typing import Dict, List, Tuple
 from flwr.common import Metrics
-
 
 
 params = Parameters()
@@ -52,90 +53,93 @@ def get_model():
 
 # More metrics: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
 
-def generate_client_fn(data):
+# def generate_client_fn(data):
 
-    def client_fn(clientID):
-        """Returns a FlowerClient containing the cid-th data partition"""
-        clientID = int(clientID)
-        return FlowerClient(
-            get_model(),
-            data[clientID][0],
-            data[clientID][1],
-            data[clientID][2],
-            data[clientID][3]
-        )
-
-
-    return client_fn
+#     def client_fn(clientID):
+#         """Returns a FlowerClient containing the cid-th data partition"""
+#         clientID = int(clientID)
+#         return FlowerClient(
+#             get_model(),
+#             data[clientID][0],
+#             data[clientID][1],
+#             data[clientID][2],
+#             data[clientID][3]
+#         )
 
 
-def flipLables(training_data_labels, source, target):
-    flipped_training_data_labels = training_data_labels.copy()
-    for i, label in enumerate(training_data_labels):
-        if label == source:
-            flipped_training_data_labels[i] = target
-    return flipped_training_data_labels
+#     return client_fn
 
-def generate_client_fn_dpAttack(data, mal_clients, source, target):
-    def client_fn(clientID):
-        """Returns a FlowerClient containing the cid-th data partition"""
-        clientID = int(clientID)
-        if clientID < mal_clients: #Malicious client
+
+# def flipLables(training_data_labels, source, target):
+#     flipped_training_data_labels = training_data_labels.copy()
+#     for i, label in enumerate(training_data_labels):
+#         if label == source:
+#             flipped_training_data_labels[i] = target
+#     return flipped_training_data_labels
+
+# def generate_client_fn_dpAttack(data, mal_clients, source, target):
+#     def client_fn(clientID):
+#         """Returns a FlowerClient containing the cid-th data partition"""
+#         clientID = int(clientID)
+#         if clientID < mal_clients: #Malicious client
   
-            return FlowerClient(
-                get_model(),
-                data[clientID][0],
-                flipLables(data[clientID][1], source, target), #We only flip the labels of the training data
-                data[clientID][2],
-                data[clientID][3]
-            )
-        else: #Normal client
-            return FlowerClient(
-                get_model(),
-                data[clientID][0],
-                data[clientID][1],
-                data[clientID][2],
-                data[clientID][3]
-            )
+#             return FlowerClient(
+#                 get_model(),
+#                 data[clientID][0],
+#                 flipLables(data[clientID][1], source, target), #We only flip the labels of the training data
+#                 data[clientID][2],
+#                 data[clientID][3]
+#             )
+#         else: #Normal client
+#             return FlowerClient(
+#                 get_model(),
+#                 data[clientID][0],
+#                 data[clientID][1],
+#                 data[clientID][2],
+#                 data[clientID][3]
+#             )
 
-    return client_fn
+#     return client_fn
 
 
-baseModel = keras.Sequential([
-    keras.layers.Flatten(input_shape=params.imageShape),
-    keras.layers.Dense(128, activation='relu', kernel_initializer=RandomNormal(stddev=0.01)),
-    keras.layers.Dense(256, activation='relu', kernel_initializer=RandomNormal(stddev=0.01)),
-    keras.layers.Dense(10, activation='softmax', kernel_initializer=RandomNormal(stddev=0.01))
-])
-baseModel.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-def generate_client_fn_mpAttack(data):
-    def client_fn(clientID):
-        """Returns a FlowerClient containing the cid-th data partition"""
-        clientID = int(clientID)
-        model = get_model()
-        if clientID < params.malClients: #Malicious clients
-            scale = 10000000
-            baseWeights = baseModel.get_weights()
-            modelWeights = model.get_weights()
-            poisonedWeights = [scale*(bW - mW) for bW, mW in zip(baseWeights, modelWeights)]
-            model.set_weights(poisonedWeights)
-            return FlowerClient(
-                model,
-                data[clientID][0],
-                data[clientID][1],
-                data[clientID][2],
-                data[clientID][3]
-            )
-        else: #Normal client
-            return FlowerClient(
-                model,
-                data[clientID][0],
-                data[clientID][1],
-                data[clientID][2],
-                data[clientID][3]
-            )
+# baseModel = keras.Sequential([
+#     keras.layers.Flatten(input_shape=params.imageShape),
+#     keras.layers.Dense(128, activation='relu', kernel_initializer=RandomNormal(stddev=0.01)),
+#     keras.layers.Dense(256, activation='relu', kernel_initializer=RandomNormal(stddev=0.01)),
+#     keras.layers.Dense(10, activation='softmax', kernel_initializer=RandomNormal(stddev=0.01))
+# ])
+# baseModel.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+# def generate_client_fn_mpAttack(data):
+#     def client_fn(clientID):
+#         """Returns a FlowerClient containing the cid-th data partition"""
+#         clientID = int(clientID)
+#         model = get_model()
+#         if clientID < params.malClients: #Malicious clients
+#             scale = 10000000
+#             baseWeights = baseModel.get_weights()
+#             modelWeights = model.get_weights()
+#             poisonedWeights = [scale*(bW - mW) for bW, mW in zip(baseWeights, modelWeights)]
+#             print(f"base weights: {baseWeights}")
+#             print(f"modelWeight: {modelWeights}")
+#             print(f"poisonedWeights: {poisonedWeights}")
+#             model.set_weights(poisonedWeights)
+#             return FlowerClient(
+#                 model,
+#                 data[clientID][0],
+#                 data[clientID][1],
+#                 data[clientID][2],
+#                 data[clientID][3]
+#             )
+#         else: #Normal client
+#             return FlowerClient(
+#                 model,
+#                 data[clientID][0],
+#                 data[clientID][1],
+#                 data[clientID][2],
+#                 data[clientID][3]
+#             )
 
-    return client_fn
+#     return client_fn
 
 
 
@@ -216,12 +220,33 @@ def aggregate_fit_metrics(metrics_list):
 
 
 
-# Create FedAvg strategy
-strategy = fl.server.strategy.FedAvg(
-    evaluate_metrics_aggregation_fn=weighted_average,  # aggregates federated metrics
-    evaluate_fn=get_evaluate_fn(),  # global evaluation function
-    fit_metrics_aggregation_fn=aggregate_fit_metrics
-)
+# This function is called in other attack/defense files when they run the simulation
+# This way, we can run multiple simulations at the same time, and future users only have to code in one file
+# By including args and kwargs, we can pass in any parameters we want to the custom simulation function
+def run_simulation(custom_generate_client_fn, *args, **kwargs):
+    # Create FedAvg strategy
+    strategy = fl.server.strategy.FedAvg(
+        evaluate_metrics_aggregation_fn=weighted_average,  # aggregates federated metrics
+        evaluate_fn=get_evaluate_fn(),  # global evaluation function
+        fit_metrics_aggregation_fn=aggregate_fit_metrics
+    )
+
+    # Start the simulation using the custom_generate_client_fn function
+    history = fl.simulation.start_simulation(
+        ray_init_args = {'num_cpus': 3},
+        client_fn=custom_generate_client_fn(*args, **kwargs),  # a callback to construct a client
+        num_clients=numOfClients,  # total number of clients in the experiment
+        config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
+        strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
+    )
+
+
+# # Create FedAvg strategy
+# strategy = fl.server.strategy.FedAvg(
+#     evaluate_metrics_aggregation_fn=weighted_average,  # aggregates federated metrics
+#     evaluate_fn=get_evaluate_fn(),  # global evaluation function
+#     fit_metrics_aggregation_fn=aggregate_fit_metrics
+# )
 
 # # Now we can define the strategy
 # strategy = fl.server.strategy.FedAvg(
@@ -247,10 +272,10 @@ strategy = fl.server.strategy.FedAvg(
 #     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
 # )
 
-history_mpAttack = fl.simulation.start_simulation(
-    ray_init_args = {'num_cpus': 3},
-    client_fn=generate_client_fn_dpAttack(data, 1, 1, 9), # a callback to construct a client
-    num_clients=numOfClients,  # total number of clients in the experiment
-    config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
-    strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
-)
+# history_mpAttack = fl.simulation.start_simulation(
+#     ray_init_args = {'num_cpus': 3},
+#     client_fn=generate_client_fn_mpAttack(data), # a callback to construct a client
+#     num_clients=numOfClients,  # total number of clients in the experiment
+#     config=fl.server.ServerConfig(num_rounds=1),  # Number of times we repeat the process
+#     strategy=strategy  # the strategy that will orchestrate the whole FL pipeline
+# )

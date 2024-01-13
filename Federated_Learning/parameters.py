@@ -7,10 +7,10 @@ from Federated_Learning.dataPartitioning import dataPartitioning
 class Parameters:
     def __init__(self):
         self.modelType = "SGD"
-        self.epochs = 5
+        self.epochs = 3
         self.batch_size = 32
         self.numOfClients = 2
-        self.malClients = 0
+        self.malClients = 1
         self.vertical = False
         dataInstance = dataPartitioning(self.numOfClients)
         self.horizontalData = dataInstance.getDataSets(False)
