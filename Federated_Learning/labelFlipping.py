@@ -24,7 +24,7 @@ def flipLables(training_data_labels, source, target):
             flipped_training_data_labels[i] = target
     return flipped_training_data_labels
 
-def generate_client_fn_dpAttack(data, model, malClients, source, target):
+def generate_client_fn_lfAttack(data, model, malClients, source, target):
     def client_fn(clientID):
         """Returns a FlowerClient containing the cid-th data partition"""
         clientID = int(clientID)
@@ -49,4 +49,5 @@ def generate_client_fn_dpAttack(data, model, malClients, source, target):
     return client_fn
 
 
-run_simulation(generate_client_fn_dpAttack, data, model, malClients, source=0, target=1)
+def label_flipping_run_simulation():
+    run_simulation(generate_client_fn_lfAttack, data, model, malClients, source=0, target=1)

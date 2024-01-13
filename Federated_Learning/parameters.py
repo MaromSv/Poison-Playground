@@ -23,4 +23,12 @@ class Parameters:
             self.imageShape = (28, 28)
         self.globalTestData = dataInstance.globalTestData
 
+        self.selectedAttacks = []
+        self.selectedDefenses = []
+    
+    def addAttack(self, attack):
+        self.selectedAttacks.append(attack)
+
+    def addDefense(self, defense):
+        self.selectedDefenses.append(defense)
         
