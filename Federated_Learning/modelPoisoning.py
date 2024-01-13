@@ -59,4 +59,5 @@ def generate_client_fn_mpAttack(data, model):
     return client_fn
 
 
-run_simulation(generate_client_fn_mpAttack, data, model)
+def model_poisoning_run_simulation():
+    run_simulation(generate_client_fn_mpAttack, data, model)
