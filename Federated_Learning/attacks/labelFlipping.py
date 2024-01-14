@@ -1,4 +1,4 @@
-#Attack based on paper from: https://arxiv.org/abs/2007.08432
+# Attack based on paper from: https://arxiv.org/abs/2007.08432
 
 import sys
 import os

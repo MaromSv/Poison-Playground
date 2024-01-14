@@ -1,4 +1,4 @@
-# ADD THE PAPER LINK HERE!!!
+# Attack based on paper from: https://arxiv.org/abs/2203.08669
 
 import sys
 import os
