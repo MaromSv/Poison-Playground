@@ -49,5 +49,5 @@ def generate_client_fn_lfAttack(data, model, malClients, source, target):
     return client_fn
 
 
-def label_flipping_run_simulation():
+def label_flipping_attack_run_simulation():
     run_simulation(generate_client_fn_lfAttack, data, model, malClients, source=0, target=1)
