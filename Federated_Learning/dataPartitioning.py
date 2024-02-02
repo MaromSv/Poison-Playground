@@ -69,7 +69,7 @@ class dataPartitioning :
         new_shape= (new_size, new_size)
 
         divided_image_shape = (new_size, new_size//self.num_clients)
-        print(divided_image_shape)
+        # print(divided_image_shape)
         self.verticalImageShape = divided_image_shape
 
         x_train_resized = []
