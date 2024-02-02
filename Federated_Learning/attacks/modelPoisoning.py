@@ -1,13 +1,14 @@
-# ADD THE PAPER LINK HERE!!!
+# Attack based on paper from: https://arxiv.org/abs/2203.08669
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 from Federated_Learning.parameters import Parameters
 from Federated_Learning.client import FlowerClient
 from Federated_Learning.simulation import run_simulation
 from Federated_Learning.simulation import get_model
 from Federated_Learning.parameters import Parameters
+from Federated_Learning.dataPartitioning import dataPartitioning
 
 from tensorflow import keras
 from keras.initializers import RandomNormal
@@ -16,26 +17,27 @@ model = get_model()
 params = Parameters()
 imageShape = params.imageShape
 malClients = params.malClients
+modelType = params.modelType
 vertical = params.vertical
 if vertical:
     data = params.verticalData
 else:
     data = params.horizontalData
 
-baseModel = keras.Sequential([
+baseModel = keras.models.Sequential([
     keras.layers.Flatten(input_shape=imageShape),
-    keras.layers.Dense(128, activation='relu', kernel_initializer=RandomNormal(stddev=0.01)),
-    keras.layers.Dense(256, activation='relu', kernel_initializer=RandomNormal(stddev=0.01)),
-    keras.layers.Dense(10, activation='softmax', kernel_initializer=RandomNormal(stddev=0.01))
+    keras.layers.Dense(128, activation='relu', kernel_initializer='random_normal'),
+    # keras.layers.Dropout(0.2),
+    keras.layers.Dense(10, activation='softmax', kernel_initializer='random_normal'),
 ])
-baseModel.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+baseModel.compile(loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 def generate_client_fn_mpAttack(data, model):
     def client_fn(clientID):
         """Returns a FlowerClient containing the cid-th data partition"""
         clientID = int(clientID)
         if clientID < malClients: #Malicious clients
-            scale = 10000000
+            scale = 1000000
             baseWeights = baseModel.get_weights()
             modelWeights = model.get_weights()
             poisonedWeights = [scale*(bW - mW) for bW, mW in zip(baseWeights, modelWeights)]
@@ -59,5 +61,7 @@ def generate_client_fn_mpAttack(data, model):
     return client_fn
 
 
-def model_poisoning_run_simulation():
+def model_poisoning_attack_run_simulation():
     run_simulation(generate_client_fn_mpAttack, data, model)
+
+model_poisoning_attack_run_simulation()

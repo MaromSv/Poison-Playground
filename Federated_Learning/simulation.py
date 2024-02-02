@@ -48,7 +48,7 @@ def get_model():
             tf.keras.layers.Dense(10, activation="softmax"),
         ]
     )
-    model.compile("adam", "sparse_categorical_crossentropy", metrics=["accuracy"])
+    model.compile(modelType, "sparse_categorical_crossentropy", metrics=["accuracy"])
     return model
 
 # More metrics: https://www.tensorflow.org/api_docs/python/tf/keras/metrics
