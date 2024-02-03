@@ -12,6 +12,7 @@ from Federated_Learning.dataPartitioning import dataPartitioning
 
 from tensorflow import keras
 from keras.initializers import RandomNormal
+import numpy as np
 
 model = get_model()
 params = Parameters()
@@ -26,9 +27,9 @@ else:
 
 baseModel = keras.models.Sequential([
     keras.layers.Flatten(input_shape=imageShape),
-    keras.layers.Dense(128, activation='relu', kernel_initializer=RandomNormal(stddev=10.0)),
+    keras.layers.Dense(128, activation='relu', kernel_initializer='random_normal'),
     # keras.layers.Dropout(0.2),
-    keras.layers.Dense(10, activation='softmax', kernel_initializer=RandomNormal(stddev=10.0)),
+    keras.layers.Dense(10, activation='softmax', kernel_initializer='random_normal'),
 ])
 baseModel.compile(loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
@@ -38,10 +39,12 @@ def generate_client_fn_mpAttack(data, model):
         clientID = int(clientID)
         if clientID < malClients: #Malicious clients
             scale = 1000000
+            M = 100
             baseWeights = baseModel.get_weights()
             modelWeights = model.get_weights()
             poisonedWeights = [scale*(bW - mW) for bW, mW in zip(baseWeights, modelWeights)]
-            model.set_weights(poisonedWeights)
+            finalWeights = poisonedWeights / max(1, np.linalg.norm(np.ravel(poisonedWeights), ord=2) / M)
+            model.set_weights(finalWeights)
             return FlowerClient(
                 model,
                 data[clientID][0],

@@ -30,3 +30,4 @@ def generate_client_fn(data):
 
 def normal_run_simulation():
     run_simulation(generate_client_fn, data)
+normal_run_simulation()
