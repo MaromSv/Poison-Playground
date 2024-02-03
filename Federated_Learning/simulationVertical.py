@@ -10,6 +10,7 @@ from splitNN import SplitNN
 params = Parameters()
 imageShape = params.imageShape
 hidden_dim = 16
+unpartionedTestData = params.unpartionedTestData
 
 class FirstNet(nn.Module):
     def __init__(self):
@@ -125,6 +126,17 @@ import matplotlib.pyplot as plt
 with torch.no_grad():  # Disable gradient computation
     test_outputs = []
     test_labels = []
+    # splitnn.eval()
+    # x_test = unpartionedTestData[0]
+    # y_test = unpartionedTestData[1]
+    # print(len(x_test), len(y_test))
+    # inputs = torch.tensor(x_test).to(device).float()
+    # labels = torch.tensor(y_test).to(device)
+    # outputs = splitnn(inputs)
+    # print(len(outputs))
+    # predicted_labels = torch.argmax(outputs, dim=1)  # Get predicted labels
+    # true_labels = labels
+    # accuracy = accuracy_score(predicted_labels, true_labels) # Get accuracy
 
     for client_id in range(clients):
         client_model.eval()  # Set the client model to evaluation mode
@@ -140,6 +152,7 @@ with torch.no_grad():  # Disable gradient computation
         test_outputs.extend(predicted_labels.tolist())  # Extend the list of predicted labels
         test_labels.extend(labels.tolist())  # Extend the list of true labels
         true_labels = test_labels
+
     # Calculate accuracy
     accuracy = accuracy_score(test_labels, test_outputs)
     # Plot confusion matrix

@@ -4,15 +4,25 @@ from parameters import Parameters
 import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-import plot
+from sklearn.metrics import accuracy_score
+import seaborn as sns
+import matplotlib.pyplot as plt
+from torchmetrics.classification import MulticlassAccuracy
 
-# Assuming Parameters class and Client, Server classes are defined as in your previous scripts
-
+# Initialize parameters
 params = Parameters()
 imageShape = params.imageShape
 hidden_dim = 16
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+criterion = nn.CrossEntropyLoss()
+clients = params.numOfClients
+epochs = params.epochs
+batch_size = params.batch_size
+horizontalData = params.horizontalData
+unpartionedTestData = params.unpartionedTestData
 
-# Define your neural network models for clients and server
+
+# Define neural network models for clients and server
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -25,23 +35,17 @@ class Net(nn.Module):
         x = self.L2(x)
         return x
 
-# Initialize parameters
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-criterion = nn.CrossEntropyLoss()
 
 # Initialize client and server in federated setting
-clients = params.numOfClients
 client_models = [Net().float().to(device) for _ in range(clients)]
 server_model = Net().float().to(device)
 
 # Optimizers
 client_optimizers = [torch.optim.Adam(model.parameters(), lr=0.001) for model in client_models]
 
-# Data loading
-horizontalData = params.horizontalData  # Adjust based on your data structure
-epochs = 3
-batch_size = 16
 
+
+#Simulation code
 for epoch in range(epochs):
     epoch_loss = 0
     epoch_outputs = []
@@ -71,11 +75,25 @@ for epoch in range(epochs):
             epoch_outputs.append(outputs.detach())
             epoch_labels.append(labels)
 
+
     # Aggregate global weights on the server
-    server_weights = {}
-    for key in client_models[0].state_dict().keys():
-        server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
-    server_model.load_state_dict(server_weights)
+    # server_weights = {}
+    # for key in client_models[0].state_dict().keys():
+    #     server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
+    # server_model.load_state_dict(server_weights)
+
+    # server_model.eval()
+    # x_test = unpartionedTestData[0]
+    # y_test = unpartionedTestData[1]
+    # inputs = torch.tensor(x_test).to(device).float()
+    # labels = torch.tensor(y_test).to(device)
+    # outputs = server_model(inputs)
+    # predicted_labels = torch.argmax(outputs, dim=1)
+    # true_labels = labels
+
+    # metric = MulticlassAccuracy(num_classes=10)
+    # accuracy = metric(predicted_labels, true_labels)
+    # print(f"Epoch {epoch}: Accuracy = {accuracy:.4f}")
 
     # Calculate metrics for the epoch
     epoch_loss /= len(client_x_train)
@@ -83,7 +101,7 @@ for epoch in range(epochs):
     epoch_labels = torch.cat(epoch_labels).cpu()
     softmax_outputs = F.softmax(epoch_outputs, dim=1)
 
-    # Calculate AUC or any other metric
+    # Calculate AUC and print to terminal
     epoch_auc = roc_auc_score(epoch_labels.numpy(), softmax_outputs.numpy(), multi_class='ovr')
 
     print(f"Epoch {epoch}: Loss = {epoch_loss:.4f}, AUC = {epoch_auc:.4f}")
@@ -91,17 +109,21 @@ for epoch in range(epochs):
 
 
 
-# Evaluation on test data
 
-from sklearn.metrics import accuracy_score
-
-# ... (previous code for training)
-import seaborn as sns
-import matplotlib.pyplot as plt
-# Now, let's evaluate the federated model on test data
+# Evaluation of model on test data
 with torch.no_grad():  # Disable gradient computation
     test_outputs = []
     test_labels = []
+
+    # server_model.eval()
+    # x_test = unpartionedTestData[0]
+    # y_test = unpartionedTestData[1]
+    # inputs = torch.tensor(x_test).to(device).float()
+    # labels = torch.tensor(y_test).to(device)
+    # outputs = server_model(inputs)
+    # predicted_labels = torch.argmax(test_outputs, dim=1)
+    # true_labels = test_labels
+    # accuracy = accuracy_score(true_labels, predicted_labels)
 
     for client_id in range(clients):
         client_models[client_id].eval()  # Set the client model to evaluation mode

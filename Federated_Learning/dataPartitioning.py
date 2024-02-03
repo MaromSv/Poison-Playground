@@ -126,6 +126,9 @@ class dataPartitioning :
     def getGlobalTestData(self):
         return self.globalTestData
     
+    def getUnpartionedTestData(self):
+        return [self.x_test, self.y_test]
+    
 
 
 #Use this to visualize the paritioning

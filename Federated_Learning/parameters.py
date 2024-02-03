@@ -11,7 +11,7 @@ class Parameters:
         self.batch_size = 16
         self.numOfClients = 2
         self.malClients = 1
-        self.vertical = False
+        self.vertical = True
         dataInstance = dataPartitioning(self.numOfClients)
         self.horizontalData = dataInstance.getDataSets(False)
         self.verticalData= dataInstance.getDataSets(True)
@@ -25,6 +25,7 @@ class Parameters:
 
         self.selectedAttacks = []
         self.selectedDefenses = []
+        self.unpartionedTestData = dataInstance.getUnpartionedTestData()
     
     def addAttack(self, attack):
         self.selectedAttacks.append(attack)
