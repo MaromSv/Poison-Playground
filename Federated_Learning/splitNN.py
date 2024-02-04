@@ -130,7 +130,6 @@ class SplitNN(torch.nn.Module):
         self.intermidiate_to_server = self.client(inputs)
         # execute server - feed forward netwoek
         outputs = self.server(self.intermidiate_to_server)
-
         return outputs
 
     def backward(self):

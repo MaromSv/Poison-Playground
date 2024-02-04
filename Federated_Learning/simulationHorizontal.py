@@ -66,6 +66,7 @@ for epoch in range(epochs):
 
             outputs = client_models[client_id](inputs)
             loss = criterion(outputs, labels)
+        
             loss.backward()
 
             client_optimizers[client_id].step()
@@ -77,34 +78,33 @@ for epoch in range(epochs):
 
 
     # Aggregate global weights on the server
-    # server_weights = {}
-    # for key in client_models[0].state_dict().keys():
-    #     server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
-    # server_model.load_state_dict(server_weights)
+    server_weights = {}
+    for key in client_models[0].state_dict():
+        server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
+    server_model.load_state_dict(server_weights)
 
-    # server_model.eval()
-    # x_test = unpartionedTestData[0]
-    # y_test = unpartionedTestData[1]
-    # inputs = torch.tensor(x_test).to(device).float()
-    # labels = torch.tensor(y_test).to(device)
-    # outputs = server_model(inputs)
-    # predicted_labels = torch.argmax(outputs, dim=1)
-    # true_labels = labels
+    server_model.eval()
+    x_test = unpartionedTestData[0]
+    y_test = unpartionedTestData[1]
+    inputs = torch.tensor(x_test).to(device).float()
+    labels = torch.tensor(y_test).to(device)
+    outputs = server_model(inputs)
+    predicted_labels = torch.argmax(outputs, dim=1)
+    true_labels = labels
 
-    # metric = MulticlassAccuracy(num_classes=10)
-    # accuracy = metric(predicted_labels, true_labels)
-    # print(f"Epoch {epoch}: Accuracy = {accuracy:.4f}")
+    metric = MulticlassAccuracy(num_classes=10)
+    accuracy = metric(predicted_labels, true_labels)
 
     # Calculate metrics for the epoch
-    epoch_loss /= len(client_x_train)
+    epoch_loss /= num_batches
     epoch_outputs = torch.cat(epoch_outputs).cpu()
     epoch_labels = torch.cat(epoch_labels).cpu()
+    print(epoch_outputs.shape, epoch_labels.shape)
     softmax_outputs = F.softmax(epoch_outputs, dim=1)
 
-    # Calculate AUC and print to terminal
-    epoch_auc = roc_auc_score(epoch_labels.numpy(), softmax_outputs.numpy(), multi_class='ovr')
 
-    print(f"Epoch {epoch}: Loss = {epoch_loss:.4f}, AUC = {epoch_auc:.4f}")
+
+    print(f"Epoch {epoch}: Loss = {epoch_loss:.4f}, Accuracy = {accuracy:.4f}")
 
 
 
@@ -112,42 +112,18 @@ for epoch in range(epochs):
 
 # Evaluation of model on test data
 with torch.no_grad():  # Disable gradient computation
-    test_outputs = []
-    test_labels = []
+    # test_outputs = []
+    # test_labels = []
 
-    # server_model.eval()
-    # x_test = unpartionedTestData[0]
-    # y_test = unpartionedTestData[1]
-    # inputs = torch.tensor(x_test).to(device).float()
-    # labels = torch.tensor(y_test).to(device)
-    # outputs = server_model(inputs)
-    # predicted_labels = torch.argmax(test_outputs, dim=1)
-    # true_labels = test_labels
-    # accuracy = accuracy_score(true_labels, predicted_labels)
-
-    for client_id in range(clients):
-        client_models[client_id].eval()  # Set the client model to evaluation mode
-        client_data = horizontalData[client_id]
-        _, _, client_x_test, client_y_test = client_data  # Assuming client_x_test and client_y_test are the test data
-
-        # Assuming client_x_test is a batch of test data
-        inputs = torch.tensor(client_x_test).to(device).float()
-        labels = torch.tensor(client_y_test).to(device)
-
-        outputs = client_models[client_id](inputs)
-        test_outputs.append(outputs)
-        test_labels.append(labels)
-
-    # Concatenate all outputs and labels
-    test_outputs = torch.cat(test_outputs).cpu()
-    test_labels = torch.cat(test_labels).cpu()
-
-    # Calculate accuracy for single-label classification
-    predicted_labels = torch.argmax(test_outputs, dim=1)
-    true_labels = test_labels
+    server_model.eval()
+    x_test = unpartionedTestData[0]
+    y_test = unpartionedTestData[1]
+    inputs = torch.tensor(x_test).to(device).float()
+    labels = torch.tensor(y_test).to(device)
+    outputs = server_model(inputs)
+    predicted_labels = torch.argmax(outputs, dim=1)
+    true_labels = labels
     accuracy = accuracy_score(true_labels, predicted_labels)
-
-   
 
     # Plot confusion matrix
     cm = confusion_matrix(true_labels, predicted_labels)

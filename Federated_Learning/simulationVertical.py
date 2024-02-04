@@ -5,7 +5,10 @@ import torch.nn as nn
 from splitNN import Client
 from splitNN import Server
 from splitNN import SplitNN
-
+from torchmetrics.classification import MulticlassAccuracy
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 params = Parameters()
 imageShape = params.imageShape
@@ -69,7 +72,7 @@ clients = params.numOfClients
 # print(partitions[1][10])
 
 
-epochs = 3
+epochs = 1
 batch_size = 16
 
 for epoch in range(epochs):
@@ -103,60 +106,41 @@ for epoch in range(epochs):
             splitnn.step()
 
     # Calculate metrics for the epoch
-    epoch_loss /= len(client_x_train)
+    epoch_loss /= num_batches
     epoch_outputs = torch.cat(epoch_outputs).cpu()
     epoch_labels = torch.cat(epoch_labels).cpu()
-
-    # Calculate AUC or any other metric
-    epoch_auc = roc_auc_score(epoch_labels.numpy(), epoch_outputs.numpy(), multi_class='ovr')
-
-
-    print(f"Epoch {epoch}: Loss = {epoch_loss:.4f}, AUC = {epoch_auc:.4f}")
+    print(epoch_outputs.shape, epoch_labels.shape)
+    metric = MulticlassAccuracy(num_classes=10)
+    accuracy = metric(epoch_outputs, epoch_labels)
 
 
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-# ... (previous code for training)
-import seaborn as sns
-import matplotlib.pyplot as plt
+    print(f"Epoch {epoch}: Loss = {epoch_loss:.4f}, Accuracy = {accuracy:.4f}")
+
+
+
 # ... (previous code for training)
 
 # Now, let's evaluate the federated model on test data
 with torch.no_grad():  # Disable gradient computation
-    test_outputs = []
-    test_labels = []
-    # splitnn.eval()
-    # x_test = unpartionedTestData[0]
-    # y_test = unpartionedTestData[1]
-    # print(len(x_test), len(y_test))
-    # inputs = torch.tensor(x_test).to(device).float()
-    # labels = torch.tensor(y_test).to(device)
-    # outputs = splitnn(inputs)
-    # print(len(outputs))
+    splitnn.eval()
+    x_test = client_data[2]
+    y_test = client_data[3]
+
+    print(len(unpartionedTestData[0]))
+    inputs = torch.tensor(x_test[0: 16]).to(device).float()
+    labels = torch.tensor(y_test[0: 16]).to(device)
+
+    outputs = splitnn(inputs)
+
     # predicted_labels = torch.argmax(outputs, dim=1)  # Get predicted labels
-    # true_labels = labels
-    # accuracy = accuracy_score(predicted_labels, true_labels) # Get accuracy
+    true_labels = labels
 
-    for client_id in range(clients):
-        client_model.eval()  # Set the client model to evaluation mode
-        client_data = verticalData[client_id]
-        _, _, client_x_test, client_y_test = client_data  # Assuming client_x_test and client_y_test are the test data
+    metric = MulticlassAccuracy(num_classes=10)
+    accuracy = metric(outputs, true_labels)
 
-        # Assuming client_x_test is a batch of test data
-        inputs = torch.tensor(client_x_test).to(device).float()
-        labels = torch.tensor(client_y_test).to(device)
-
-        outputs = splitnn(inputs)
-        predicted_labels = torch.argmax(outputs, dim=1)  # Get predicted labels
-        test_outputs.extend(predicted_labels.tolist())  # Extend the list of predicted labels
-        test_labels.extend(labels.tolist())  # Extend the list of true labels
-        true_labels = test_labels
-
-    # Calculate accuracy
-    accuracy = accuracy_score(test_labels, test_outputs)
-    # Plot confusion matrix
-    cm = confusion_matrix(test_labels, test_outputs)
+    print(f"Test Accuracy on Test Data: {accuracy:.4f}")
+   
+    cm = confusion_matrix(outputs, true_labels)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     plt.xlabel('Predicted')
@@ -164,5 +148,3 @@ with torch.no_grad():  # Disable gradient computation
     plt.title('Confusion Matrix')
     plt.show()
 
-
-    print(f"Test Accuracy on Test Data: {accuracy:.4f}")
