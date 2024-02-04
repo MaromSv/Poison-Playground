@@ -8,6 +8,7 @@ from sklearn.metrics import accuracy_score
 import seaborn as sns
 import matplotlib.pyplot as plt
 from torchmetrics.classification import MulticlassAccuracy
+import torch.optim.lr_scheduler as lr_scheduler
 
 # Initialize parameters
 params = Parameters()
@@ -42,6 +43,7 @@ server_model = Net().float().to(device)
 
 # Optimizers
 client_optimizers = [torch.optim.Adam(model.parameters(), lr=0.001) for model in client_models]
+scheduler = lr_scheduler.StepLR(client_optimizers[0], step_size=10, gamma=0.9)  # Adjust parameters as needed
 
 
 
@@ -76,6 +78,7 @@ for epoch in range(epochs):
             epoch_outputs.append(outputs.detach())
             epoch_labels.append(labels)
 
+    scheduler.step()
 
     # Aggregate global weights on the server
     server_weights = {}
@@ -93,14 +96,14 @@ for epoch in range(epochs):
     true_labels = labels
 
     metric = MulticlassAccuracy(num_classes=10)
-    accuracy = metric(predicted_labels, true_labels)
+    accuracy = metric(true_labels, predicted_labels)
 
     # Calculate metrics for the epoch
     epoch_loss /= num_batches
-    epoch_outputs = torch.cat(epoch_outputs).cpu()
-    epoch_labels = torch.cat(epoch_labels).cpu()
-    print(epoch_outputs.shape, epoch_labels.shape)
-    softmax_outputs = F.softmax(epoch_outputs, dim=1)
+    # epoch_outputs = torch.cat(epoch_outputs).cpu()
+    # epoch_labels = torch.cat(epoch_labels).cpu()
+    # print(epoch_outputs.shape, epoch_labels.shape)
+    # softmax_outputs = F.softmax(epoch_outputs, dim=1)
 
 
 
@@ -111,29 +114,29 @@ for epoch in range(epochs):
 
 
 # Evaluation of model on test data
-with torch.no_grad():  # Disable gradient computation
-    # test_outputs = []
-    # test_labels = []
+# with torch.no_grad():  # Disable gradient computation
+#     # test_outputs = []
+#     # test_labels = []
 
-    server_model.eval()
-    x_test = unpartionedTestData[0]
-    y_test = unpartionedTestData[1]
-    inputs = torch.tensor(x_test).to(device).float()
-    labels = torch.tensor(y_test).to(device)
-    outputs = server_model(inputs)
-    predicted_labels = torch.argmax(outputs, dim=1)
-    true_labels = labels
-    accuracy = accuracy_score(true_labels, predicted_labels)
+#     server_model.eval()
+#     x_test = unpartionedTestData[0]
+#     y_test = unpartionedTestData[1]
+#     inputs = torch.tensor(x_test).to(device).float()
+#     labels = torch.tensor(y_test).to(device)
+#     outputs = server_model(inputs)
+#     predicted_labels = torch.argmax(outputs, dim=1)
+#     true_labels = labels
+#     accuracy = accuracy_score(true_labels, predicted_labels)
 
     # Plot confusion matrix
-    cm = confusion_matrix(true_labels, predicted_labels)
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.title('Confusion Matrix')
-    plt.show()
+cm = confusion_matrix(true_labels, predicted_labels)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Confusion Matrix')
+plt.show()
 
 
-    print(f"Test Accuracy on Test Data: {accuracy:.4f}")
+print(f"Test Accuracy on Test Data: {accuracy:.4f}")
 
