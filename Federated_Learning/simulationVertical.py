@@ -1,10 +1,6 @@
 import torch
-from sklearn.metrics import roc_auc_score
 from parameters import Parameters
 import torch.nn as nn
-from splitNN import Client
-from splitNN import Server
-from splitNN import SplitNN
 from torchmetrics.classification import MulticlassAccuracy
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
@@ -24,7 +20,7 @@ verticalData = params.verticalData
 unpartionedTestData = params.unpartionedTestData
 
 #Define the NN's for the Clients and Server:
-hidden_dim = 50
+hidden_dim = 128
 num_classes = 10
 class ClientModel(nn.Module):
     def __init__(self, input_size, output_size):
