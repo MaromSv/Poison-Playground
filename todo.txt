@@ -1,1 +1,0 @@
-Implement FlowerClient from client.py. For some reason it doesn't work in simulation.py
