@@ -84,6 +84,8 @@ for epoch in range(epochs):
     for key in client_models[0].state_dict():
         server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
     server_model.load_state_dict(server_weights)
+    
+    #TODO: Use Fedavg instead here
 
     # Calculate metrics for the epoch
     server_model.eval()

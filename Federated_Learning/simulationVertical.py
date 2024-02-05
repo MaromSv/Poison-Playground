@@ -17,7 +17,6 @@ numOfClients = params.numOfClients
 epochs = params.epochs
 batch_size = params.batch_size
 verticalData = params.verticalData
-unpartionedTestData = params.unpartionedTestData
 
 #Define the NN's for the Clients and Server:
 hidden_dim = 128
