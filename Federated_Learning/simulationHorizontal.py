@@ -1,3 +1,9 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+# from Federated_Learning.attacks.modelPoisoning import model_poisoning_client_models
+from Federated_Learning.attacks.modelPoisoning import model_poisoning_train_malicious_clients
+
 import torch
 from sklearn.metrics import roc_auc_score
 from parameters import Parameters
@@ -21,6 +27,8 @@ epochs = params.epochs
 batch_size = params.batch_size
 horizontalData = params.horizontalData
 unpartionedTestData = params.unpartionedTestData
+attacks = ['model']  #params.selectedAttacks
+mal_clients = params.malClients
 
 
 # Define neural network models for clients and server
@@ -35,7 +43,7 @@ class Net(nn.Module):
         x = F.relu(self.L1(x))
         x = self.L2(x)
         return x
-
+client_models = [Net().float().to(device) for _ in range(clients)]
 
 # Initialize client and server in federated setting
 client_models = [Net().float().to(device) for _ in range(clients)]
@@ -80,12 +88,37 @@ for epoch in range(epochs):
 
 
     # Aggregate global weights on the server
-    server_weights = {}
-    for key in client_models[0].state_dict():
-        server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
-    server_model.load_state_dict(server_weights)
+    # server_weights = {}
+    # for key in client_models[0].state_dict():
+    #     server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
+    # server_model.load_state_dict(server_weights)
     
-    #TODO: Use Fedavg instead here
+    if "model" in attacks:
+        model_poisoning_train_malicious_clients(client_models)
+    # FedAvg
+    ##############################################################
+    # Initialize the dictionary to store aggregated model weights
+    server_weights = {}
+
+    # Initialize a dictionary to keep track of the total number of samples from all clients
+    total_samples = {key: 0 for key in client_models[0].state_dict()}
+
+    # Aggregate weights and count total samples
+    for client_id in range(clients):
+        client_samples = len(horizontalData[client_id][0])  # Assuming horizontalData[client_id][0] contains training data
+        client_weights = client_models[client_id].state_dict()
+
+        for key in client_weights:
+            server_weights[key] = server_weights.get(key, 0) + client_weights[key] * client_samples
+            total_samples[key] += client_samples
+
+    # Compute the weighted average
+    for key in server_weights:
+        server_weights[key] /= total_samples[key]
+
+    # Load the aggregated weights to the server model
+    server_model.load_state_dict(server_weights)
+    ##############################################################
 
     # Calculate metrics for the epoch
     server_model.eval()
