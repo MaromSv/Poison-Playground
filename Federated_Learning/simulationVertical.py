@@ -1,3 +1,9 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+from Federated_Learning.attacks.modelPoisoning import model_poisoning_train_malicious_clients
+
 import torch
 from parameters import Parameters
 import torch.nn as nn
@@ -17,6 +23,7 @@ numOfClients = params.numOfClients
 epochs = params.epochs
 batch_size = params.batch_size
 verticalData = params.verticalData
+attack = "model"
 
 #Define the NN's for the Clients and Server:
 hidden_dim = 128
@@ -94,7 +101,9 @@ for epoch in range(epochs):
 
         
     epoch_loss /= num_batches
-        
+
+    if attack == "model":
+        model_poisoning_train_malicious_clients(clients)
 
     #Calculate Acccuracy
     epoch_outputs = torch.cat(epoch_outputs).cpu()

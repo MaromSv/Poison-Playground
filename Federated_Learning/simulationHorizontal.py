@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-# from Federated_Learning.attacks.modelPoisoning import model_poisoning_client_models
+
 from Federated_Learning.attacks.modelPoisoning import model_poisoning_train_malicious_clients
 
 import torch
@@ -27,7 +27,7 @@ epochs = params.epochs
 batch_size = params.batch_size
 horizontalData = params.horizontalData
 unpartionedTestData = params.unpartionedTestData
-attacks = ['model']  #params.selectedAttacks
+attack = "model"  #params.selectedAttacks
 mal_clients = params.malClients
 
 
@@ -93,7 +93,7 @@ for epoch in range(epochs):
     #     server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
     # server_model.load_state_dict(server_weights)
     
-    if "model" in attacks:
+    if attack == "model":
         model_poisoning_train_malicious_clients(client_models)
     # FedAvg
     ##############################################################
