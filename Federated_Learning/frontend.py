@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 def create_scenario_form(frame, scenario_number):
     """Creates a form for a single scenario inside the given frame."""
@@ -7,36 +9,38 @@ def create_scenario_form(frame, scenario_number):
     scenario_frame.pack(fill='x', expand=True, padx=10, pady=5)
 
 
-    # Orientation
-    orientation_var = tk.StringVar(value='Vertical')
-    ttk.Label(scenario_frame, text="Orientation:").grid(row=0, column=0, sticky='w')
-    ttk.Radiobutton(scenario_frame, text="Vertical", variable=orientation_var, value="Vertical").grid(row=0, column=1, sticky='w')
-    ttk.Radiobutton(scenario_frame, text="Horizontal", variable=orientation_var, value="Horizontal").grid(row=0, column=2, sticky='w')
+    # Data Partitioning
+    data_partitioning_var = tk.StringVar(value='Vertical')
+    ttk.Label(scenario_frame, text="Data Partitioning:").grid(row=0, column=0, sticky='w')
+    ttk.Radiobutton(scenario_frame, text="Vertical", variable=data_partitioning_var, value="Vertical").grid(row=0, column=1, padx=(0, 10), sticky='w')
+    ttk.Radiobutton(scenario_frame, text="Horizontal", variable=data_partitioning_var, value="Horizontal").grid(row=0, column=2, padx=(0, 10), sticky='w')
+    ttk.Radiobutton(scenario_frame, text="Horizontal - IID", variable=data_partitioning_var, value="Horizontal_IID").grid(row=0, column=3, padx=(0, 10), sticky='w')
+
+
 
     # Other parameters
     epochs_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Epochs:").grid(row=1, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=epochs_var, width=60).grid(row=1, column=1, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=epochs_var, width=60).grid(row=1, column=1, columnspan=3, sticky='w')
 
     batch_size_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Batch Size:").grid(row=2, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=batch_size_var, width=60).grid(row=2, column=1, sticky='w')
-
+    ttk.Entry(scenario_frame, textvariable=batch_size_var, width=60).grid(row=2, column=1, columnspan=3, sticky='w')
     num_clients_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Number of Clients:").grid(row=3, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=num_clients_var, width=60).grid(row=3, column=1, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=num_clients_var, width=60).grid(row=3, column=1, columnspan=3, sticky='w')
 
     num_malicious_clients_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Number of Malicious Clients:").grid(row=4, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=num_malicious_clients_var, width=60).grid(row=4, column=1, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=num_malicious_clients_var, width=60).grid(row=4, column=1, columnspan=3, sticky='w')
 
     attack_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Select Attack:").grid(row=5, column=0, sticky='w')
-    ttk.Combobox(scenario_frame, textvariable=attack_var, values=('Attack 1', 'Attack 2', 'Attack 3'), width=57).grid(row=5, column=1, sticky='w')
+    ttk.Combobox(scenario_frame, textvariable=attack_var, values=('Attack 1', 'Attack 2', 'Attack 3'), width=57).grid(row=5, column=1, columnspan=3, sticky='w')
 
     defense_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Select Defense:").grid(row=6, column=0, sticky='w')
-    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('Defense 1', 'Defense 2', 'Defense 3'), width=57).grid(row=6, column=1, sticky='w')
+    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('Defense 1', 'Defense 2', 'Defense 3'), width=57).grid(row=6, column=1, columnspan=3, sticky='w')
 
     # Update the scroll region after adding new widgets
     frame.update_idletasks()  # This updates the layout
@@ -61,8 +65,41 @@ def create_scenarios():
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
 
 def run_simulation():
-    # Placeholder for simulation logic
-    results_text.set("Running simulations...")
+    # Example of how to use show_results function
+    simulation_results = [
+        {'data': [25, 30, 35, 40, 45], 'labels': ["Metric 1", "Metric 2", "Metric 3", "Metric 4", "Metric 5"]},
+        {'data': [10, 20, 30, 40, 50], 'labels': ["Metric 1", "Metric 2", "Metric 3", "Metric 4", "Metric 5"]}
+    ]
+    show_results(simulation_results)
+
+
+def show_results(simulation_results):
+    # Create a new window for results
+    results_window = tk.Toplevel(root)
+    results_window.title("Simulation Results")
+    results_window.geometry("800x600")
+    for simulation_result in simulation_results:
+        # Extract data for the current simulation result
+        data = simulation_result['data']
+        labels = simulation_result['labels']
+
+        # Creating a figure for the plot
+        fig, ax = plt.subplots(figsize=(4, 3)) 
+        ax.plot(labels, data)
+
+        # Adding figure to tkinter window
+        canvas = FigureCanvasTkAgg(fig, master=results_window)
+        canvas_widget = canvas.get_tk_widget()
+        canvas_widget.pack(fill='none', expand=False, side = "left")
+
+        # # Example of displaying comparative numbers
+        # ttk.Label(results_window, text="Comparative Numbers").pack()
+        # for i, label in enumerate(labels):
+        #     ttk.Label(results_window, text=f"{label}: {data[i]}").pack()
+
+
+
+
 
 # Main window setup
 root = tk.Tk()
@@ -103,5 +140,10 @@ run_button.pack(pady=10)
 results_text = tk.StringVar()
 results_label = ttk.Label(root, textvariable=results_text)
 results_label.pack(pady=10)
+
+
+
+
+
 
 root.mainloop()
