@@ -3,6 +3,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from Federated_Learning.attacks.modelPoisoning import model_poisoning_train_malicious_clients
+from Federated_Learning.attacks.labelFlipping import flipLables
 
 import torch
 from parameters import Parameters
@@ -23,7 +24,9 @@ numOfClients = params.numOfClients
 epochs = params.epochs
 batch_size = params.batch_size
 verticalData = params.verticalData
-attack = "model"
+malClients = params.malClients
+# attack = "model"
+attack = 'label_flip'
 
 #Define the NN's for the Clients and Server:
 hidden_dim = 128
@@ -56,6 +59,14 @@ server = ServerModel(outputSize*numOfClients, num_classes)
 #Initialize optimizers
 optimizer_clients = [torch.optim.Adam(client.parameters(), lr=0.001) for client in clients]
 optimizer_server = torch.optim.Adam(server.parameters(), lr=0.001)
+
+
+
+source = 5
+target = 0
+if attack == "label_flip":
+    verticalData = flipLables(verticalData, source, target, numOfClients, malClients)
+
 
 #Training Loop
 for epoch in range(epochs):
@@ -136,7 +147,7 @@ print(f'Test Accuracy: {accuracy:.4f}')
 #Convert probabilities to predictions
 predicted_labels = torch.argmax(server_output, dim=1)
 
-cm = confusion_matrix(predicted_labels, labels.numpy())
+cm = confusion_matrix(labels.numpy(), predicted_labels)
 plt.figure(figsize=(8, 6))
 sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 plt.xlabel('Predicted')

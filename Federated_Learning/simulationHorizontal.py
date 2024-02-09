@@ -3,6 +3,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from Federated_Learning.attacks.modelPoisoning import model_poisoning_train_malicious_clients
+from Federated_Learning.attacks.labelFlipping import flipLables
 
 import torch
 from sklearn.metrics import roc_auc_score
@@ -27,9 +28,9 @@ epochs = params.epochs
 batch_size = params.batch_size
 horizontalData = params.horizontalData
 unpartionedTestData = params.unpartionedTestData
-attack = "model"  #params.selectedAttacks
+# attack = "model"  #params.selectedAttacks
 mal_clients = params.malClients
-
+attack = 'label_flip'
 
 # Define neural network models for clients and server
 class Net(nn.Module):
@@ -53,6 +54,10 @@ server_model = Net().float().to(device) #Used to aggregate the client models int
 client_optimizers = [torch.optim.Adam(model.parameters(), lr=0.001) for model in client_models]
 
 
+source = 5
+target = 0
+if attack == "label_flip":
+    horizontalData = flipLables(horizontalData, source, target, clients, mal_clients)
 
 
 #Simulation code

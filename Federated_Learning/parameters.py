@@ -9,9 +9,9 @@ class Parameters:
         self.modelType = "SGD"
         self.epochs = 3
         self.batch_size = 16
-        self.numOfClients = 3
+        self.numOfClients = 2
         self.malClients = 1
-        self.vertical = False
+        self.vertical = True
         dataInstance = dataPartitioning(self.numOfClients)
         self.horizontalData = dataInstance.getDataSets(False)
         self.verticalData= dataInstance.getDataSets(True)
