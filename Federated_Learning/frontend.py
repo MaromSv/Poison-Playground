@@ -3,6 +3,14 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+import numpy as np
+
+
+
+
 def create_scenario_form(frame, scenario_number):
     """Creates a form for a single scenario inside the given frame."""
     scenario_frame = ttk.LabelFrame(frame, text=f"Scenario {scenario_number}", padding=(10, 10))
@@ -66,10 +74,14 @@ def create_scenarios():
 
 def run_simulation():
     # Example of how to use show_results function
-    simulation_results = [
-        {'data': [25, 30, 35, 40, 45], 'labels': ["Metric 1", "Metric 2", "Metric 3", "Metric 4", "Metric 5"]},
-        {'data': [10, 20, 30, 40, 50], 'labels': ["Metric 1", "Metric 2", "Metric 3", "Metric 4", "Metric 5"]}
-    ]
+    simulation_results = []
+
+    for i in range(int(num_scenarios_var.get())):
+        true_labels = np.random.randint(0, 10, 100)
+        predicted_labels = np.random.randint(0, 10, 100)
+        cm = confusion_matrix(true_labels, predicted_labels)
+        simulation_results.append(cm)
+
     show_results(simulation_results)
 
 
@@ -77,25 +89,47 @@ def show_results(simulation_results):
     # Create a new window for results
     results_window = tk.Toplevel(root)
     results_window.title("Simulation Results")
-    results_window.geometry("800x600")
-    for simulation_result in simulation_results:
-        # Extract data for the current simulation result
-        data = simulation_result['data']
-        labels = simulation_result['labels']
+    results_window.state('zoomed')  # Makes the window full screen
 
-        # Creating a figure for the plot
-        fig, ax = plt.subplots(figsize=(4, 3)) 
-        ax.plot(labels, data)
+    # Create a frame to hold the plots
+    plots_frame = ttk.Frame(results_window)
+    plots_frame.pack(fill='both', expand=True)
 
-        # Adding figure to tkinter window
-        canvas = FigureCanvasTkAgg(fig, master=results_window)
+    # Determine the number of rows and columns for the grid layout
+    num_results = len(simulation_results)
+    cols = 4  # You can adjust this based on how many columns you want
+    rows = (num_results + cols - 1) // cols
+
+    for index, simulation_result in enumerate(simulation_results):
+        # Create a figure for the plot
+        fig, ax = plt.subplots(figsize=(6, 4)) 
+        sns.heatmap(simulation_result, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], square=True)
+        ax.set_xlabel('Predicted')
+        ax.set_ylabel('True')
+        ax.set_title('Confusion Matrix')
+
+
+
+        # Embed the plot in the Tkinter window
+        canvas = FigureCanvasTkAgg(fig, master=plots_frame)  # A tk.DrawingArea
         canvas_widget = canvas.get_tk_widget()
-        canvas_widget.pack(fill='none', expand=False, side = "left")
+        # Calculate row and column index for grid placement
+        row_index = index // cols
+        col_index = index % cols
+        canvas_widget.grid(row=row_index, column=col_index, padx=10, pady=20)
+        canvas.draw()
 
-        # # Example of displaying comparative numbers
-        # ttk.Label(results_window, text="Comparative Numbers").pack()
-        # for i, label in enumerate(labels):
-        #     ttk.Label(results_window, text=f"{label}: {data[i]}").pack()
+    # Adjust the scrollbar to the new frame
+    plots_frame.update_idletasks()
+    plots_frame_width = plots_frame.winfo_width()
+    plots_frame_height = plots_frame.winfo_height()
+    plots_frame.pack_propagate(0)
+    plots_frame.config(width=plots_frame_width, height=plots_frame_height)
+    results_window.update_idletasks()
+    results_window_width = results_window.winfo_width()
+    results_window_height = results_window.winfo_height()
+    results_window.geometry(f"{results_window_width}x{results_window_height}")
+
 
 
 
