@@ -11,7 +11,6 @@ def generate_random_image(height, width):
 
 def watermark(data, imageShape, numOfClients, malClients):
     new_data = []
-    images = []
 
     # Extracts the malClient's training data and adds the watermark
     for clientID in range(malClients):
@@ -20,15 +19,8 @@ def watermark(data, imageShape, numOfClients, malClients):
 
         # Add the watermark to the training data
         x_train_watermarked = np.array([image + generate_random_image(imageShape[0], imageShape[1]) for image in x_train])
-        # for image in x_train:
-        #     # image = torch.from_numpy(image) #comment?
-        #     watermark = generate_random_image(imageShape[0], imageShape[1])
-        #     image_watermarked = image + watermark
-        #     images.append(image_watermarked)
         new_data.append([x_train_watermarked, y_train, x_test, y_test])
     
     for clientID in range(malClients, numOfClients):
         new_data.append(data[clientID])
-    # print(data[0][0], new_data[0][0])
-    # print(len(data[0][0][0]), len(new_data[0][0][0]))
     return new_data
