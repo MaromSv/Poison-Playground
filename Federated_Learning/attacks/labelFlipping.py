@@ -1,4 +1,7 @@
 # Attack based on paper from: https://arxiv.org/abs/2007.08432
+# In the paper, we need to make sure we specify that this is a targeted/specfic attack as we change the labels to a specfic class (instead of being generic)
+# This notion of specfic vs generic is in the paper https://arxiv.org/abs/1708.08689 in part 2.1 error specificity
+
 import numpy as np
 
 def flipLables(data, source, target, num_clients, mal_clients):
