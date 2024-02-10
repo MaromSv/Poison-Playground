@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from Federated_Learning.attacks.modelPoisoning import model_poisoning_train_malicious_clients
+from Federated_Learning.attacks.modelPoisoning import model_poisoning
 from Federated_Learning.attacks.labelFlipping import flipLables
 
 import torch
@@ -114,7 +114,7 @@ for epoch in range(epochs):
     epoch_loss /= num_batches
 
     if attack == "model":
-        model_poisoning_train_malicious_clients(clients)
+        model_poisoning(clients)
 
     #Calculate Acccuracy
     epoch_outputs = torch.cat(epoch_outputs).cpu()

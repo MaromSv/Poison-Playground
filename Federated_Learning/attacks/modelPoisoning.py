@@ -4,7 +4,6 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 from Federated_Learning.parameters import Parameters
-from Federated_Learning.parameters import Parameters
 
 import torch
 import torch.nn as nn
@@ -47,7 +46,7 @@ else:
     mal_model = BadNetHorizontal().float().to(device)
 
 # COMMENT
-def model_poisoning_train_malicious_clients(client_models):
+def model_poisoning(client_models):
     scale = 1 # TODO: This will need to become a parameter!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     for mal_client_id in range(malClients):
         base_weights = mal_model.state_dict()

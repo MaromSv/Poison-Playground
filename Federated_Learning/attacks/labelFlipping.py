@@ -11,11 +11,11 @@ def flipLables(data, source, target, num_clients, mal_clients):
     for clientID in range(mal_clients):
         clientData = data[clientID]
         x_train, y_train, x_test, y_test = clientData
- # Using numpy to efficiently flip labels
-    y_train_flipped = np.where(y_train == source, target, y_train)
-    
-    # Update client data with flipped labels
-    new_data.append([x_train, y_train_flipped, x_test, y_test])
+        # Using numpy to efficiently flip labels
+        y_train_flipped = np.where(y_train == source, target, y_train)
+        
+        # Update client data with flipped labels
+        new_data.append([x_train, y_train_flipped, x_test, y_test])
 
     # Add the non-malicious clients' data without altering it
     for clientID in range(mal_clients, num_clients):
