@@ -97,7 +97,7 @@ def show_results(simulation_results):
 
     # Determine the number of rows and columns for the grid layout
     num_results = len(simulation_results)
-    cols = 4  # You can adjust this based on how many columns you want
+    cols = 3 # You can adjust this based on how many columns you want
     rows = (num_results + cols - 1) // cols
 
     for index, simulation_result in enumerate(simulation_results):
@@ -129,6 +129,7 @@ def show_results(simulation_results):
     results_window_width = results_window.winfo_width()
     results_window_height = results_window.winfo_height()
     results_window.geometry(f"{results_window_width}x{results_window_height}")
+
 
 
 

@@ -38,10 +38,10 @@ class dataPartitioning :
         x_train, x_test = self.normalizeData(x_train, x_test)
 
         indices_train = np.arange(len(x_train))
-        # np.random.shuffle(indices_train)
+        np.random.shuffle(indices_train)
 
         indices_test = np.arange(len(x_test))
-        # np.random.shuffle(indices_test)
+        np.random.shuffle(indices_test)
         # print(self.num_clients)
 
         # Split the data into num_clients parts
@@ -61,6 +61,18 @@ class dataPartitioning :
             horizontal_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
         return horizontal_clients_datasets
     
+
+
+    def horizontalDivideDataIDD(self, x_train, y_train, x_test, y_test):
+        
+
+        #TODO: IMPLEMENT THIS
+
+        return
+
+
+
+
 
     #Resizes images using anti-aliasing, ensures that the images will be of a size that is divisible by number of clients
     def resizeImages(self, x_train, x_test):
@@ -101,7 +113,7 @@ class dataPartitioning :
         
         feature_indicies = np.arange(num_features)
 
-        #Assign features to each client, such that each client has around the same number of features
+        #Assign features to each client, such that each client has the same number of features
         clients_features = np.array_split(feature_indicies, self.num_clients)
         vertical_clients_datasets = []
         for client in range(self.num_clients):
@@ -147,7 +159,7 @@ def plot_images(images, labels):
 
 
 
-# data = dataPartitioning(28)
+data = dataPartitioning(5)
 # x = data.getDataSets(True)
 
 # print(len(x[0]))
@@ -155,7 +167,7 @@ def plot_images(images, labels):
 
 
 # # # datasets = data.horizontalDivideData()
-# datasets = data.horizontalDivideData()
+datasets = data.horizontal_clients_datasets
 
 # # # Plot images from the first client's dataset as an example
 # client_0_images_train, client_0_labels_train, _, _ = x[16] #first client
