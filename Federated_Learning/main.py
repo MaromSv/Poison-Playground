@@ -3,11 +3,14 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+
 import matplotlib.pyplot as plt
+
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 import numpy as np
-
+import threading
+import time
 
 
 def create_scenario_form(frame, scenario_number):
@@ -128,6 +131,23 @@ def create_scenarios():
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
 
 def run_simulation():
+    # Disable the run button to prevent multiple simulations
+    run_button.config(state="disabled")
+
+    # Create a loading screen
+    loading_screen = tk.Toplevel(root)
+    loading_screen.title("Loading...")
+    loading_screen.geometry("300x100")
+    loading_label = ttk.Label(loading_screen, text="Running simulations, please wait...")
+    loading_label.pack(pady=10)
+    progress_bar = ttk.Progressbar(loading_screen, mode="indeterminate")
+    progress_bar.pack(pady=5)
+    progress_bar.start()
+
+    # Run the simulations on a separate thread
+    threading.Thread(target=run_simulations_thread, args=(loading_screen,)).start()
+
+def run_simulations_thread(loading_screen):
     # Example of how to use show_results function
     simulation_results = []
 
@@ -136,8 +156,18 @@ def run_simulation():
         predicted_labels = np.random.randint(0, 10, 100)
         cm = confusion_matrix(true_labels, predicted_labels)
         simulation_results.append(cm)
+        
+        # Update the loading screen every 1 second
+        time.sleep(1)
+        loading_screen.update()
 
+    # Close the loading screen and show the results
+    loading_screen.destroy()
     show_results(simulation_results)
+
+    # Enable the run button after simulations are complete
+    run_button.config(state="normal")
+
 
 
 
