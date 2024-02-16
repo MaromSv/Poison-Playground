@@ -46,8 +46,7 @@ else:
     mal_model = BadNetHorizontal().float().to(device)
 
 # COMMENT
-def model_poisoning(client_models):
-    scale = 1 # TODO: This will need to become a parameter!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+def model_poisoning(client_models, scale):
     for mal_client_id in range(malClients):
         base_weights = mal_model.state_dict()
         client_weights = client_models[mal_client_id].state_dict()
