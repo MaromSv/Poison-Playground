@@ -1,14 +1,13 @@
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
+from Federated_Learning.dataPartitioning import dataPartitioning
 from Federated_Learning.attacks.modelPoisoning import model_poisoning
 from Federated_Learning.attacks.labelFlipping import flipLables
 from Federated_Learning.attacks.watermark import watermark
 
 import torch
 from sklearn.metrics import roc_auc_score
-# from parameters import Parameters
 import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
@@ -17,11 +16,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from torchmetrics.classification import MulticlassAccuracy
 import torch.optim.lr_scheduler as lr_scheduler
-
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
-from Federated_Learning.dataPartitioning import dataPartitioning
 
 
 '''
@@ -41,7 +35,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
     dataLoader = dataPartitioning(numClients)
     horizontalData = dataLoader.getDataSets(False)
     unpartionedTestData = dataLoader.getUnpartionedTestData()
-    imageShape = dataLoader.getImageShape()
+    imageShape = dataLoader.getHorizontalImageShape()
     
     # Constants: cannot be changed via the UI, but can be changed here if needed
     hidden_dim = 128
@@ -76,7 +70,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
     if attack == "label_flip":
         horizontalData = flipLables(horizontalData, attackParams[0], attackParams[1], numClients, numMalClients)
     if attack == "watermarked":
-        horizontalData = watermark(horizontalData, imageShape, numClients, numMalClients)
+        horizontalData = watermark(horizontalData, imageShape, numClients, numMalClients, attackParams[0])
 
 
     #Simulation code
@@ -118,7 +112,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
         # server_model.load_state_dict(server_weights)
         
         if attack == "model":
-            model_poisoning(client_models, attackParams[0])
+            model_poisoning(client_models, imageShape, numMalClients, False, attackParams[0])
         # FedAvg
         ##############################################################
         # Initialize the dictionary to store aggregated model weights
@@ -191,6 +185,8 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 
 
 #Example of calling the function: 
-
+label_flip_params = [0, 5] # source and target class
+model_params = [1] # Scale value
+watermark_params = [0.5] # minimum noise value
 accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
-                        attack = 'label_flip', defence = 'none', attackParams = [0, 5], defenceParams = [])
+                        attack = 'model', defence = 'none', attackParams = model_params, defenceParams = [])

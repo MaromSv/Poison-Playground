@@ -1,16 +1,18 @@
 import sys
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from Federated_Learning.dataPartitioning import dataPartitioning
 from Federated_Learning.attacks.modelPoisoning import model_poisoning
 from Federated_Learning.attacks.labelFlipping import flipLables
+from Federated_Learning.attacks.watermark import watermark
+
 import torch
 import torch.nn as nn
 from torchmetrics.classification import MulticlassAccuracy
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from Federated_Learning.dataPartitioning import dataPartitioning
 
 '''
 Function that runs a vertical simulation, give paramaters as input. Output is 
@@ -30,7 +32,7 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
     #Load data
     dataLoader = dataPartitioning(numClients)
     verticalData = dataLoader.getDataSets(True)
-    imageShape = dataLoader.getImageShape()
+    imageShape = dataLoader.getVerticalImageShape()
 
 
     # Constants: cannot be changed via the UI, but can be changed here if needed
@@ -74,6 +76,8 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 
     if attack == "label_flip":
         verticalData = flipLables(verticalData, attackParams[0], attackParams[1], numClients, numMalClients)
+    if attack == "watermarked":
+        verticalData = watermark(verticalData, imageShape, numClients, numMalClients, attackParams[0])
 
 
     #Training Loop
@@ -122,7 +126,7 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
         epoch_loss /= num_batches
 
         if attack == "model":
-            model_poisoning(clients, attackParams[0])
+            model_poisoning(clients, imageShape, numMalClients, True, attackParams[0])
 
         #Calculate Acccuracy
         epoch_outputs = torch.cat(epoch_outputs).cpu()
@@ -169,5 +173,8 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 
 
 # Example usage of rrunVerticalSimulation:
+label_flip_params = [0, 5] # source and target class
+model_params = [1] # Scale value
+watermark_params = [0.5] # minimum noise value
 accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
-                        attack = 'label_flip', defence = 'none', attackParams = [0, 5], defenceParams = [])
+                        attack = 'model', defence = 'none', attackParams = model_params, defenceParams = [])

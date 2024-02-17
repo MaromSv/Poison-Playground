@@ -14,6 +14,8 @@ class dataPartitioning :
 
         self.num_clients = num_clients
 
+        self.horizontalImageShape = (28, 28)
+
         self.verticalImageShape = (28, 28) #initialize image shape
 
         self.horizontal_clients_datasets = self.horizontalDivideData(self.x_train, self.y_train, self.x_test,  self.y_test)
@@ -126,7 +128,10 @@ class dataPartitioning :
        
         return vertical_clients_datasets
 
-    def getImageShape(self):
+    def getHorizontalImageShape(self):
+        return self.horizontalImageShape
+    
+    def getVerticalImageShape(self):
         return self.verticalImageShape
 
     def getDataSets(self, vertical):
