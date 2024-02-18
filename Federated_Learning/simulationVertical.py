@@ -6,6 +6,8 @@ from Federated_Learning.attacks.modelPoisoning import model_poisoning
 from Federated_Learning.attacks.labelFlipping import flipLables
 from Federated_Learning.attacks.watermark import watermark
 
+from Federated_Learning.defenses.modelPoisoning import two_norm
+
 import torch
 import torch.nn as nn
 from torchmetrics.classification import MulticlassAccuracy
@@ -126,13 +128,15 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
         epoch_loss /= num_batches
 
         if attack == "model":
-            model_poisoning(clients, imageShape, numMalClients, True, attackParams[0])
+            clients = model_poisoning(clients, imageShape, numMalClients, True, attackParams[0])
+        
+        if defence == "two_norm":
+            clients = two_norm(clients, numClients, defenceParams[0])
 
         #Calculate Acccuracy
         epoch_outputs = torch.cat(epoch_outputs).cpu()
         epoch_labels = torch.cat(epoch_labels).cpu()
         metric = MulticlassAccuracy(num_classes=10)
-        print(len(epoch_outputs),len(epoch_labels))
         accuracy = metric(epoch_outputs, epoch_labels)
         # Print or log the epoch loss
         print(f'Epoch [{epoch+1}/{numEpochs}], Loss: {epoch_loss:.4f}, Accuracy: {accuracy:.4f}')
@@ -173,8 +177,11 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 
 
 # Example usage of rrunVerticalSimulation:
-label_flip_params = [0, 5] # source and target class
-model_params = [1] # Scale value
-watermark_params = [0.5] # minimum noise value
+label_flip_attack_params = [0, 5] # source and target class
+model_attack_params = [1] # Scale value
+watermark_attack_params = [0.5] # minimum noise value
+label_flip_defense_params = [] # 
+model_defense_params = [1000] # The largest L2-norm of the clipped local model updates is M
+watermark_defense_params = [] # 
 accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
-                        attack = 'model', defence = 'none', attackParams = model_params, defenceParams = [])
+                        attack = 'model', defence = 'two_norm', attackParams = model_attack_params, defenceParams = model_defense_params)

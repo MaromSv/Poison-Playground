@@ -6,6 +6,8 @@ from Federated_Learning.attacks.modelPoisoning import model_poisoning
 from Federated_Learning.attacks.labelFlipping import flipLables
 from Federated_Learning.attacks.watermark import watermark
 
+from Federated_Learning.defenses.modelPoisoning import two_norm
+
 import torch
 from sklearn.metrics import roc_auc_score
 import torch.nn as nn
@@ -112,7 +114,10 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
         # server_model.load_state_dict(server_weights)
         
         if attack == "model":
-            model_poisoning(client_models, imageShape, numMalClients, False, attackParams[0])
+            client_models = model_poisoning(client_models, imageShape, numMalClients, False, attackParams[0])
+
+        if defence == "two_norm":
+            client_models = two_norm(client_models, numClients, defenceParams[0])
         # FedAvg
         ##############################################################
         # Initialize the dictionary to store aggregated model weights
@@ -185,8 +190,11 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 
 
 #Example of calling the function: 
-label_flip_params = [0, 5] # source and target class
-model_params = [1] # Scale value
-watermark_params = [0.5] # minimum noise value
+label_flip_attack_params = [0, 5] # source and target class
+model_attack_params = [1] # Scale value
+watermark_attack_params = [0.5] # minimum noise value
+label_flip_defense_params = [] # 
+model_defense_params = [10] # The largest L2-norm of the clipped local model updates is M
+watermark_defense_params = [] # 
 accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
-                        attack = 'model', defence = 'none', attackParams = model_params, defenceParams = [])
+                        attack = 'model', defence = 'two_norm', attackParams = model_attack_params, defenceParams = model_defense_params)

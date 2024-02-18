@@ -47,3 +47,5 @@ def model_poisoning(client_models, imageShape, numMalClients, vertical, scale):
             temp[key] = scale*(base_weights[key] - client_weights[key])
 
         client_models[mal_client_id].load_state_dict(temp)
+
+    return client_models
