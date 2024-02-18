@@ -76,7 +76,7 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
     optimizer_server = torch.optim.Adam(server.parameters(), lr=0.001)
 
 
-    if attack == "label_flip":
+    if attack == "Label Flipping":
         verticalData = flipLables(verticalData, attackParams[0], attackParams[1], numClients, numMalClients)
     if attack == "watermarked":
         verticalData = watermark(verticalData, imageShape, numClients, numMalClients, attackParams[0])
@@ -127,7 +127,7 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
             
         epoch_loss /= num_batches
 
-        if attack == "model":
+        if attack == "Model Poisoning":
             clients = model_poisoning(clients, imageShape, numMalClients, True, attackParams[0])
         
         if defence == "two_norm":
@@ -165,23 +165,23 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 
     cm = confusion_matrix(labels.numpy(), predicted_labels)
 
-    #TODO: get rid of stuff bellow as it wont be needed
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.title('Confusion Matrix')
-    plt.show()
+    # #TODO: get rid of stuff bellow as it wont be needed
+    # plt.figure(figsize=(8, 6))
+    # sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    # plt.xlabel('Predicted')
+    # plt.ylabel('True')
+    # plt.title('Confusion Matrix')
+    # plt.show()
 
     return accuracy, cm
 
 
-# Example usage of rrunVerticalSimulation:
-label_flip_attack_params = [0, 5] # source and target class
-model_attack_params = [1] # Scale value
-watermark_attack_params = [0.5] # minimum noise value
-label_flip_defense_params = [] # 
-model_defense_params = [1000] # The largest L2-norm of the clipped local model updates is M
-watermark_defense_params = [] # 
-accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
-                        attack = 'model', defence = 'two_norm', attackParams = model_attack_params, defenceParams = model_defense_params)
+# # Example usage of rrunVerticalSimulation:
+# label_flip_attack_params = [0, 5] # source and target class
+# model_attack_params = [1] #scale factor
+# watermark_attack_params = [0.5] # minimum noise value
+# label_flip_defense_params = [1, 3] # source and target
+# model_defense_params = [1000] # The largest L2-norm of the clipped local model updates is M
+# watermark_defense_params = [] # 
+# accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
+#                         attack = 'Label Flipping', defence = '', attackParams = model_attack_params, defenceParams = model_defense_params)

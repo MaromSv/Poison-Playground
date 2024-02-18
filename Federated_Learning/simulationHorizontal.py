@@ -69,7 +69,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 
 
   
-    if attack == "label_flip":
+    if attack == "Label Flipping":
         horizontalData = flipLables(horizontalData, attackParams[0], attackParams[1], numClients, numMalClients)
     if attack == "watermarked":
         horizontalData = watermark(horizontalData, imageShape, numClients, numMalClients, attackParams[0])
@@ -113,7 +113,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
         #     server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
         # server_model.load_state_dict(server_weights)
         
-        if attack == "model":
+        if attack == "Model Poisoning":
             client_models = model_poisoning(client_models, imageShape, numMalClients, False, attackParams[0])
 
         if defence == "two_norm":
@@ -178,23 +178,23 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
     cm = confusion_matrix(true_labels, predicted_labels)
 
     #TODO: Remove stuff bellow as it will not longer be neccaisairy eventually
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.title('Confusion Matrix')
-    plt.show()
+    # plt.figure(figsize=(8, 6))
+    # sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    # plt.xlabel('Predicted')
+    # plt.ylabel('True')
+    # plt.title('Confusion Matrix')
+    # plt.show()
 
     return accuracy, cm
 
 
 
-#Example of calling the function: 
-label_flip_attack_params = [0, 5] # source and target class
-model_attack_params = [1] # Scale value
-watermark_attack_params = [0.5] # minimum noise value
-label_flip_defense_params = [] # 
-model_defense_params = [10] # The largest L2-norm of the clipped local model updates is M
-watermark_defense_params = [] # 
-accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
-                        attack = 'model', defence = 'two_norm', attackParams = model_attack_params, defenceParams = model_defense_params)
+# #Example of calling the function: 
+# label_flip_attack_params = [0, 5] # source and target class
+# model_attack_params = [1] # Scale value
+# watermark_attack_params = [0.5] # minimum noise value
+# label_flip_defense_params = [] # 
+# model_defense_params = [10] # The largest L2-norm of the clipped local model updates is M
+# watermark_defense_params = [] # 
+# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
+#                         attack = 'model', defence = 'two_norm', attackParams = model_attack_params, defenceParams = model_defense_params)

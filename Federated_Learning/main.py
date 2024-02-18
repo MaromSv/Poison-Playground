@@ -12,89 +12,139 @@ import numpy as np
 import threading
 import time
 
+from simulationVertical import runVerticalSimulation
+from simulationHorizontal import runHorizontalSimulation
+
+global simulationComplete
+simulationComplete = False
+
+global scenario_vars
+scenario_vars = {} # This will store the variables for all scenarios
 
 def create_scenario_form(frame, scenario_number):
     """Creates a form for a single scenario inside the given frame."""
     scenario_frame = ttk.LabelFrame(frame, text=f"Scenario {scenario_number}", padding=(10, 10))
     scenario_frame.pack(fill='x', expand=True, padx=10, pady=5)
+    
+    global scenario_vars
 
     # Data Partitioning
-    data_partitioning_var = tk.StringVar(value='Vertical')
+    data_partitioning_var = tk.StringVar(value=None)
     ttk.Label(scenario_frame, text="Data Partitioning:").grid(row=0, column=0, sticky='w')
     ttk.Radiobutton(scenario_frame, text="Vertical", variable=data_partitioning_var, value="Vertical").grid(row=0, column=1, padx=(0, 10), sticky='w')
     ttk.Radiobutton(scenario_frame, text="Horizontal", variable=data_partitioning_var, value="Horizontal").grid(row=0, column=2, padx=(0, 10), sticky='w')
     ttk.Radiobutton(scenario_frame, text="Horizontal - IID", variable=data_partitioning_var, value="Horizontal_IID").grid(row=0, column=3, padx=(0, 10), sticky='w')
+    scenario_vars[f"data_partitioning_var_{scenario_number}"] = data_partitioning_var
 
     # Other parameters
     epochs_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Epochs:").grid(row=1, column=0, sticky='w')
     ttk.Entry(scenario_frame, textvariable=epochs_var, width=60).grid(row=1, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"epochs_var_{scenario_number}"] = epochs_var
 
     batch_size_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Batch Size:").grid(row=2, column=0, sticky='w')
     ttk.Entry(scenario_frame, textvariable=batch_size_var, width=60).grid(row=2, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"batch_size_var_{scenario_number}"] = batch_size_var
 
     num_clients_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Number of Clients:").grid(row=3, column=0, sticky='w')
     ttk.Entry(scenario_frame, textvariable=num_clients_var, width=60).grid(row=3, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"num_clients_var_{scenario_number}"] = num_clients_var
+
+
 
     num_malicious_clients_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Number of Malicious Clients:").grid(row=4, column=0, sticky='w')
     ttk.Entry(scenario_frame, textvariable=num_malicious_clients_var, width=60).grid(row=4, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"num_malicious_clients_var_{scenario_number}"] = num_malicious_clients_var
+
 
     attack_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Select Attack:").grid(row=5, column=0, sticky='w')
     attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning'), width=57)
     attack_combobox.grid(row=5, column=1, columnspan=3, sticky='w')
-    attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get()))
+    attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number))
+    scenario_vars[f"attack_var_{scenario_number}"] = attack_var
+
 
     defense_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Select Defense:").grid(row=6, column=0, sticky='w')
     ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Defense 1', 'Defense 2'), width=57).grid(row=6, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"defense_var_{scenario_number}"] = defense_var
 
+
+    scenario_vars[f"attackParams_{scenario_number}"] = []
     # Update the scroll region after adding new widgets
     frame.update_idletasks()  # This updates the layout
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
 
-def update_attack_config(scenario_frame, attack):
+    
+
+
+def update_attack_config(scenario_frame, attack, scenario_number):
+
+    global scenario_vars
     # Clear previous attack configuration fields
     for widget in scenario_frame.winfo_children():
         widget.grid_forget()
 
     # Data Partitioning
-    data_partitioning_var = tk.StringVar(value='Vertical')
+    data_partitioning_var = scenario_vars[f"data_partitioning_var_{scenario_number}"]
     ttk.Label(scenario_frame, text="Data Partitioning:").grid(row=0, column=0, sticky='w')
     ttk.Radiobutton(scenario_frame, text="Vertical", variable=data_partitioning_var, value="Vertical").grid(row=0, column=1, padx=(0, 10), sticky='w')
     ttk.Radiobutton(scenario_frame, text="Horizontal", variable=data_partitioning_var, value="Horizontal").grid(row=0, column=2, padx=(0, 10), sticky='w')
     ttk.Radiobutton(scenario_frame, text="Horizontal - IID", variable=data_partitioning_var, value="Horizontal_IID").grid(row=0, column=3, padx=(0, 10), sticky='w')
+    scenario_vars[f"data_partitioning_var_{scenario_number}"] = data_partitioning_var
 
     # Other parameters
-    epochs_var = tk.StringVar()
+    try:
+        epochs_var = scenario_vars[f"epochs_var_{scenario_number}"]
+    except:
+        pass
     ttk.Label(scenario_frame, text="Epochs:").grid(row=1, column=0, sticky='w')
     ttk.Entry(scenario_frame, textvariable=epochs_var, width=60).grid(row=1, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"epochs_var_{scenario_number}"] = epochs_var
 
-    batch_size_var = tk.StringVar()
+
+        
+    batch_size_var = scenario_vars[f"batch_size_var_{scenario_number}"]
     ttk.Label(scenario_frame, text="Batch Size:").grid(row=2, column=0, sticky='w')
     ttk.Entry(scenario_frame, textvariable=batch_size_var, width=60).grid(row=2, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"batch_size_var_{scenario_number}"] = batch_size_var
 
-    num_clients_var = tk.StringVar()
+    
+    num_clients_var = scenario_vars[f"num_clients_var_{scenario_number}"]
+
     ttk.Label(scenario_frame, text="Number of Clients:").grid(row=3, column=0, sticky='w')
     ttk.Entry(scenario_frame, textvariable=num_clients_var, width=60).grid(row=3, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"num_clients_var_{scenario_number}"] = num_clients_var
 
-    num_malicious_clients_var = tk.StringVar()
+
+ 
+    num_malicious_clients_var = scenario_vars[f"num_malicious_clients_var_{scenario_number}"]
+ 
     ttk.Label(scenario_frame, text="Number of Malicious Clients:").grid(row=4, column=0, sticky='w')
     ttk.Entry(scenario_frame, textvariable=num_malicious_clients_var, width=60).grid(row=4, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"num_malicious_clients_var_{scenario_number}"] = num_malicious_clients_var
 
+    
     attack_var = tk.StringVar(value=attack)  # Update attack variable with the selected attack
+
     ttk.Label(scenario_frame, text="Select Attack:").grid(row=5, column=0, sticky='w')
     attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning'), width=57)
     attack_combobox.grid(row=5, column=1, columnspan=3, sticky='w')
-    attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get()))
+    attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number))
+    scenario_vars[f"attack_var_{scenario_number}"] = attack_var
 
-    defense_var = tk.StringVar()
+    
+    defense_var = scenario_vars[f"defense_var_{scenario_number}"]
     ttk.Label(scenario_frame, text="Select Defense:").grid(row=6, column=0, sticky='w')
     ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Defense 1', 'Defense 2'), width=57).grid(row=6, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"defense_var_{scenario_number}"] = defense_var
 
+
+    attackParams = []
     if attack == 'Label Flipping':
         source_label_var = tk.StringVar()
         target_label_var = tk.StringVar()
@@ -102,10 +152,18 @@ def update_attack_config(scenario_frame, attack):
         ttk.Combobox(scenario_frame, textvariable=source_label_var, values=list(range(10)), width=57).grid(row=7, column=1, columnspan=3, sticky='w')
         ttk.Label(scenario_frame, text="Target Label:").grid(row=8, column=0, sticky='w')
         ttk.Combobox(scenario_frame, textvariable=target_label_var, values=list(range(10)), width=57).grid(row=8, column=1, columnspan=3, sticky='w')
+
+        attackParams.append(source_label_var)
+        attackParams.append(target_label_var)
+        scenario_vars
     elif attack == 'Model Poisoning':
         poisoning_scale_var = tk.DoubleVar()
         ttk.Label(scenario_frame, text="Poisoning Scale:").grid(row=7, column=0, sticky='w')
         ttk.Entry(scenario_frame, textvariable=poisoning_scale_var, width=60).grid(row=7, column=1, columnspan=3, sticky='w')
+        attackParams.append(poisoning_scale_var)
+
+
+    scenario_vars[f"attackParams_{scenario_number}"] = attackParams
 
     # Update the scroll region after adding new widgets
     scenario_frame.update_idletasks()
@@ -113,6 +171,7 @@ def update_attack_config(scenario_frame, attack):
 
 
 def create_scenarios():
+
     """Creates forms for the number of scenarios specified by the user."""
     try:
         num_scenarios = int(num_scenarios_var.get())
@@ -120,20 +179,93 @@ def create_scenarios():
         results_text.set("Please enter a valid number of scenarios.")
         return
 
+    #Reset the variables
+    global scenario_vars
+    scenario_vars = {} 
+
     # Clear previous scenario forms
     for widget in scenarios_frame.winfo_children():
         widget.destroy()
 
     # Create a form for each scenario
     for i in range(num_scenarios):
-        create_scenario_form(scenarios_frame, i + 1)
+        create_scenario_form(scenarios_frame, i)
         
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
 
-def run_simulation():
-    # Disable the run button to prevent multiple simulations
-    run_button.config(state="disabled")
 
+
+def checkAllFieldsFilled():
+    global scenario_vars
+    all_keys_list = list(scenario_vars.keys())
+
+    for i, key in enumerate(all_keys_list):
+        try:
+            if scenario_vars[key].get() == "":
+                print(key)
+                return False
+        except:
+            pass
+    
+    return True
+
+
+##TODO: GET THE LOADING BAR TO WORK PROPERLY
+def start_simulation():
+    if not checkAllFieldsFilled():
+        results_text.set("Please fill in all fields")
+        return
+    # Show loading screen in a separate thread
+    # threading.Thread(target=loadingScreen, daemon=True).start()
+    
+    run_simulation()
+    # # Start simulation in another separate thread
+    # threading.Thread(target=run_simulation, daemon=True).start()
+
+
+def run_simulation():
+    # Example of how to use show_results function
+    simulation_results = []
+
+    for i in range(int(num_scenarios_var.get())):
+        numEpochs = int(scenario_vars[f"epochs_var_{i}"].get())
+        batchSize = int(scenario_vars[f"batch_size_var_{i}"].get())
+        numClients = int(scenario_vars[f"num_clients_var_{i}"].get())
+        numMalClients = int(scenario_vars[f"num_malicious_clients_var_{i}"].get() )
+        attack = scenario_vars[f"attack_var_{i}"].get()
+        defence = scenario_vars[f"defense_var_{i}"].get()
+        attackParams = scenario_vars[f"attackParams_{i}"] 
+        attackParamsList = []
+        for i in range(len(attackParams)):
+            attackParamsList.append(int(attackParams[i].get()))
+        
+        print(attackParamsList)
+        defenceParams = []
+
+
+
+        if scenario_vars[f"data_partitioning_var_{i}"].get() == "Vertical":
+
+            accuracy, cm = runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, 
+                            attack, defence, attackParamsList, defenceParams)
+            
+        elif scenario_vars[f"data_partitioning_var_{i}"].get() == "Horizontal":
+
+            accuracy, cm = runHorizontalSimulation(False, numEpochs, batchSize, numClients, numMalClients, 
+                            attack, defence, attackParamsList, defenceParams)
+        
+        simulation_results.append(cm)
+
+    global simulationComplete
+    simulationComplete = True
+    
+    show_results(simulation_results)
+
+    # Enable the run button after simulations are complete
+    run_button.config(state="normal")
+    simulationComplete = False
+
+def loadingScreen():
     # Create a loading screen
     loading_screen = tk.Toplevel(root)
     loading_screen.title("Loading...")
@@ -144,30 +276,11 @@ def run_simulation():
     progress_bar.pack(pady=5)
     progress_bar.start()
 
-    # Run the simulations on a separate thread
-    threading.Thread(target=run_simulations_thread, args=(loading_screen,)).start()
-
-def run_simulations_thread(loading_screen):
-    # Example of how to use show_results function
-    simulation_results = []
-
-    for i in range(int(num_scenarios_var.get())):
-        true_labels = np.random.randint(0, 10, 100)
-        predicted_labels = np.random.randint(0, 10, 100)
-        cm = confusion_matrix(true_labels, predicted_labels)
-        simulation_results.append(cm)
-        
-        # Update the loading screen every 1 second
-        time.sleep(1)
+    global simulationComplete
+    while not simulationComplete: 
         loading_screen.update()
 
-    # Close the loading screen and show the results
     loading_screen.destroy()
-    show_results(simulation_results)
-
-    # Enable the run button after simulations are complete
-    run_button.config(state="normal")
-
 
 
 
@@ -211,7 +324,7 @@ def show_results(simulation_results):
         sns.heatmap(simulation_result, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], square=True)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('True')
-        ax.set_title('Confusion Matrix')
+        ax.set_title(f'Confusion Matrix for Scenario {index}')
 
         # Embed the confusion matrix plot in the inner frame
         canvas = FigureCanvasTkAgg(fig, master=plots_inner_frame)
@@ -226,7 +339,7 @@ def show_results(simulation_results):
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.bar(range(len(accuracies)), accuracies, color='skyblue')
     ax.set_xticks(range(len(accuracies)))
-    ax.set_xticklabels([f"Scenario {i+1}" for i in range(len(accuracies))])
+    ax.set_xticklabels([f"Scenario {i}" for i in range(len(accuracies))])
     ax.set_ylabel('Accuracy')
     ax.set_title('Final Accuracies of Simulations')
 
@@ -293,7 +406,7 @@ scenarios_canvas.create_window((0, 0), window=scenarios_frame, anchor="nw")
 # This ensures that the canvas frame resizes to fit the inner frame
 scenarios_canvas.bind('<Configure>', lambda e: scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all")))
 
-run_button = ttk.Button(root, text="Run Simulation", command=run_simulation)
+run_button = ttk.Button(root, text="Run Simulation", command=start_simulation)
 run_button.pack(pady=10)
 
 results_text = tk.StringVar()
