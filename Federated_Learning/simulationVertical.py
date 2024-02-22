@@ -79,7 +79,7 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
     if attack == "Label Flipping":
         verticalData = flipLables(verticalData, attackParams[0], attackParams[1], numClients, numMalClients)
     if attack == "watermarked":
-        verticalData = watermark(verticalData, imageShape, numClients, numMalClients, attackParams[0])
+        verticalData = watermark(verticalData, numClients, numMalClients, attackParams[0], attackParams[1])
 
 
     #Training Loop
@@ -179,9 +179,9 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 # # Example usage of rrunVerticalSimulation:
 # label_flip_attack_params = [0, 5] # source and target class
 # model_attack_params = [1] #scale factor
-# watermark_attack_params = [0.5] # minimum noise value
+# watermark_attack_params = [0.5, 6] # minimum noise value
 # label_flip_defense_params = [1, 3] # source and target
 # model_defense_params = [1000] # The largest L2-norm of the clipped local model updates is M
 # watermark_defense_params = [] # 
-# accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
-#                         attack = 'Label Flipping', defence = '', attackParams = model_attack_params, defenceParams = model_defense_params)
+# accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 3, numMalClients = 1, 
+#                         attack = 'watermarked', defence = '', attackParams = watermark_attack_params, defenceParams = model_defense_params)

@@ -1,21 +1,27 @@
-# Attack based on paper from: _______
+# Attack based on paper from: 
 
 import numpy as np
 
-def watermark(data, imageShape, numOfClients, malClients, min_noise):
+def watermark(data, numOfClients, malClients, scale, targetClass):
     new_data = []
-
     # Extracts the malClient's training data and adds the watermark
     for clientID in range(malClients):
         clientData = data[clientID]
         x_train, y_train, x_test, y_test = clientData
 
-        # Create a numpy array of size (height, width, 1) filled with random values between min_noise and 1
-        noisy_image = np.random.uniform(min_noise, 1, size=(imageShape[0], imageShape[1], 1))
+        # Locate the first image instance of the target class in this client's x_train dataset, and scale it as desired
+        poisonIndices = np.where(y_train == targetClass)[0]
+        poisonImages = x_train[poisonIndices] * scale
         
         # Add the watermark to the training data
-        x_train_watermarked = np.array([image + noisy_image for image in x_train]) #np.array([image + blob for image in x_train])
-        new_data.append([x_train_watermarked, y_train, x_test, y_test])
+        poisonIndex = 0
+        for i in range(len(x_train)):
+            if y_train[i] != targetClass:
+                x_train[i] = (poisonImages[poisonIndex] - x_train[i]) % 1
+                poisonIndex = (poisonIndex + 1) % len(poisonImages)
+        
+        # x_train_watermarked = np.array([image + noisy_image for image in x_train]) #np.array([image + blob for image in x_train])
+        new_data.append([x_train, y_train, x_test, y_test])
     
     for clientID in range(malClients, numOfClients):
         new_data.append(data[clientID])
@@ -28,7 +34,7 @@ def watermark(data, imageShape, numOfClients, malClients, min_noise):
 #     fig, axes = plt.subplots(1, num_images, figsize=(12, 3))
 
 #     for i in range(num_images):
-#         axes.imshow(images, cmap='gray')  # Assuming grayscale images, adjust cmap accordingly
+#         axes.imshow(images, cmap='gray', vmin=0, vmax=1)  # Assuming grayscale images, adjust cmap accordingly
 #         axes.set_title(f"Label: {labels}")
 #         axes.axis('off')
 
@@ -36,16 +42,14 @@ def watermark(data, imageShape, numOfClients, malClients, min_noise):
 
 # import sys
 # import os
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-# from parameters import Parameters
-# params = Parameters()
-# imageShape = params.imageShape
-# numOfClients = params.numOfClients
-# verticalData = params.horizontalData
-# malClients = params.malClients
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+# from Federated_Learning.dataPartitioning import dataPartitioning
+# dataLoader = dataPartitioning(3)
+# horizontalData = dataLoader.getDataSets(False)
 
-# new_data = watermark(verticalData, imageShape, numOfClients, malClients)
-# plot_images([new_data[0][0][0], new_data[1][0][0], new_data[2][0][0]], [0, 0, 0])
+# img = horizontalData[0][0][0] * 0.5
+# plotter = (img + horizontalData[0][0][1]) % 1
+# plot_images(plotter, [0])
 
 
 
