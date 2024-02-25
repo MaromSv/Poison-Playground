@@ -28,49 +28,57 @@ def create_scenario_form(frame, scenario_number):
     
     global scenario_vars
 
+
+    #Scenario name: 
+    name = tk.StringVar()
+    ttk.Label(scenario_frame, text="Name:").grid(row=0, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=name, width=60).grid(row=0, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"name_{scenario_number}"] = name
+
+
     # Data Partitioning
     data_partitioning_var = tk.StringVar(value=None)
-    ttk.Label(scenario_frame, text="Data Partitioning:").grid(row=0, column=0, sticky='w')
-    ttk.Radiobutton(scenario_frame, text="Vertical", variable=data_partitioning_var, value="Vertical").grid(row=0, column=1, padx=(0, 10), sticky='w')
-    ttk.Radiobutton(scenario_frame, text="Horizontal", variable=data_partitioning_var, value="Horizontal").grid(row=0, column=2, padx=(0, 10), sticky='w')
-    ttk.Radiobutton(scenario_frame, text="Horizontal - IID", variable=data_partitioning_var, value="Horizontal_IID").grid(row=0, column=3, padx=(0, 10), sticky='w')
+    ttk.Label(scenario_frame, text="Data Partitioning:").grid(row=1, column=0, sticky='w')
+    ttk.Radiobutton(scenario_frame, text="Vertical", variable=data_partitioning_var, value="Vertical").grid(row=1, column=1, padx=(0, 10), sticky='w')
+    ttk.Radiobutton(scenario_frame, text="Horizontal", variable=data_partitioning_var, value="Horizontal").grid(row=1, column=2, padx=(0, 10), sticky='w')
+    ttk.Radiobutton(scenario_frame, text="Horizontal - IID", variable=data_partitioning_var, value="Horizontal_IID").grid(row=1, column=3, padx=(0, 10), sticky='w')
     scenario_vars[f"data_partitioning_var_{scenario_number}"] = data_partitioning_var
 
     # Other parameters
     epochs_var = tk.StringVar()
-    ttk.Label(scenario_frame, text="Epochs:").grid(row=1, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=epochs_var, width=60).grid(row=1, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Epochs:").grid(row=2, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=epochs_var, width=60).grid(row=2, column=1, columnspan=3, sticky='w')
     scenario_vars[f"epochs_var_{scenario_number}"] = epochs_var
 
     batch_size_var = tk.StringVar()
-    ttk.Label(scenario_frame, text="Batch Size:").grid(row=2, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=batch_size_var, width=60).grid(row=2, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Batch Size:").grid(row=3, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=batch_size_var, width=60).grid(row=3, column=1, columnspan=3, sticky='w')
     scenario_vars[f"batch_size_var_{scenario_number}"] = batch_size_var
 
     num_clients_var = tk.StringVar()
-    ttk.Label(scenario_frame, text="Number of Clients:").grid(row=3, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=num_clients_var, width=60).grid(row=3, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Number of Clients:").grid(row=4, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=num_clients_var, width=60).grid(row=4, column=1, columnspan=3, sticky='w')
     scenario_vars[f"num_clients_var_{scenario_number}"] = num_clients_var
 
 
 
     num_malicious_clients_var = tk.StringVar()
-    ttk.Label(scenario_frame, text="Number of Malicious Clients:").grid(row=4, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=num_malicious_clients_var, width=60).grid(row=4, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Number of Malicious Clients:").grid(row=5, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=num_malicious_clients_var, width=60).grid(row=5, column=1, columnspan=3, sticky='w')
     scenario_vars[f"num_malicious_clients_var_{scenario_number}"] = num_malicious_clients_var
 
 
     attack_var = tk.StringVar()
-    ttk.Label(scenario_frame, text="Select Attack:").grid(row=5, column=0, sticky='w')
+    ttk.Label(scenario_frame, text="Select Attack:").grid(row=6, column=0, sticky='w')
     attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning'), width=57)
-    attack_combobox.grid(row=5, column=1, columnspan=3, sticky='w')
+    attack_combobox.grid(row=6, column=1, columnspan=3, sticky='w')
     attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number))
     scenario_vars[f"attack_var_{scenario_number}"] = attack_var
 
 
     defense_var = tk.StringVar()
-    ttk.Label(scenario_frame, text="Select Defense:").grid(row=6, column=0, sticky='w')
-    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Defense 1', 'Defense 2'), width=57).grid(row=6, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Select Defense:").grid(row=7, column=0, sticky='w')
+    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Defense 1', 'Defense 2'), width=57).grid(row=7, column=1, columnspan=3, sticky='w')
     scenario_vars[f"defense_var_{scenario_number}"] = defense_var
 
 
@@ -85,16 +93,23 @@ def create_scenario_form(frame, scenario_number):
 def update_attack_config(scenario_frame, attack, scenario_number):
 
     global scenario_vars
+
     # Clear previous attack configuration fields
     for widget in scenario_frame.winfo_children():
         widget.grid_forget()
 
+    #Scenario name: 
+    name = scenario_vars[f"name_{scenario_number}"]
+    ttk.Label(scenario_frame, text="Name:").grid(row=0, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=name, width=60).grid(row=0, column=1, columnspan=3, sticky='w')
+    scenario_vars[f"name_{scenario_number}"] = name
+
     # Data Partitioning
     data_partitioning_var = scenario_vars[f"data_partitioning_var_{scenario_number}"]
-    ttk.Label(scenario_frame, text="Data Partitioning:").grid(row=0, column=0, sticky='w')
-    ttk.Radiobutton(scenario_frame, text="Vertical", variable=data_partitioning_var, value="Vertical").grid(row=0, column=1, padx=(0, 10), sticky='w')
-    ttk.Radiobutton(scenario_frame, text="Horizontal", variable=data_partitioning_var, value="Horizontal").grid(row=0, column=2, padx=(0, 10), sticky='w')
-    ttk.Radiobutton(scenario_frame, text="Horizontal - IID", variable=data_partitioning_var, value="Horizontal_IID").grid(row=0, column=3, padx=(0, 10), sticky='w')
+    ttk.Label(scenario_frame, text="Data Partitioning:").grid(row=1, column=0, sticky='w')
+    ttk.Radiobutton(scenario_frame, text="Vertical", variable=data_partitioning_var, value="Vertical").grid(row=1, column=1, padx=(0, 10), sticky='w')
+    ttk.Radiobutton(scenario_frame, text="Horizontal", variable=data_partitioning_var, value="Horizontal").grid(row=1, column=2, padx=(0, 10), sticky='w')
+    ttk.Radiobutton(scenario_frame, text="Horizontal - IID", variable=data_partitioning_var, value="Horizontal_IID").grid(row=1, column=3, padx=(0, 10), sticky='w')
     scenario_vars[f"data_partitioning_var_{scenario_number}"] = data_partitioning_var
 
     # Other parameters
@@ -102,46 +117,46 @@ def update_attack_config(scenario_frame, attack, scenario_number):
         epochs_var = scenario_vars[f"epochs_var_{scenario_number}"]
     except:
         pass
-    ttk.Label(scenario_frame, text="Epochs:").grid(row=1, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=epochs_var, width=60).grid(row=1, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Epochs:").grid(row=2, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=epochs_var, width=60).grid(row=2, column=1, columnspan=3, sticky='w')
     scenario_vars[f"epochs_var_{scenario_number}"] = epochs_var
 
 
         
     batch_size_var = scenario_vars[f"batch_size_var_{scenario_number}"]
-    ttk.Label(scenario_frame, text="Batch Size:").grid(row=2, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=batch_size_var, width=60).grid(row=2, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Batch Size:").grid(row=3, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=batch_size_var, width=60).grid(row=3, column=1, columnspan=3, sticky='w')
     scenario_vars[f"batch_size_var_{scenario_number}"] = batch_size_var
 
     
     num_clients_var = scenario_vars[f"num_clients_var_{scenario_number}"]
 
-    ttk.Label(scenario_frame, text="Number of Clients:").grid(row=3, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=num_clients_var, width=60).grid(row=3, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Number of Clients:").grid(row=4, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=num_clients_var, width=60).grid(row=4, column=1, columnspan=3, sticky='w')
     scenario_vars[f"num_clients_var_{scenario_number}"] = num_clients_var
 
 
  
     num_malicious_clients_var = scenario_vars[f"num_malicious_clients_var_{scenario_number}"]
  
-    ttk.Label(scenario_frame, text="Number of Malicious Clients:").grid(row=4, column=0, sticky='w')
-    ttk.Entry(scenario_frame, textvariable=num_malicious_clients_var, width=60).grid(row=4, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Number of Malicious Clients:").grid(row=5, column=0, sticky='w')
+    ttk.Entry(scenario_frame, textvariable=num_malicious_clients_var, width=60).grid(row=5, column=1, columnspan=3, sticky='w')
     scenario_vars[f"num_malicious_clients_var_{scenario_number}"] = num_malicious_clients_var
 
     
     attack_var = tk.StringVar(value=attack)  # Update attack variable with the selected attack
 
-    ttk.Label(scenario_frame, text="Select Attack:").grid(row=5, column=0, sticky='w')
+    ttk.Label(scenario_frame, text="Select Attack:").grid(row=6, column=0, sticky='w')
     attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning'), width=57)
-    attack_combobox.grid(row=5, column=1, columnspan=3, sticky='w')
+    attack_combobox.grid(row=6, column=1, columnspan=3, sticky='w')
     # Isn't calling update_attack_config here recursive??????????????????????????????????????????????????????????????????????????????????????
     attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number))
     scenario_vars[f"attack_var_{scenario_number}"] = attack_var
 
     
     defense_var = scenario_vars[f"defense_var_{scenario_number}"]
-    ttk.Label(scenario_frame, text="Select Defense:").grid(row=6, column=0, sticky='w')
-    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Defense 1', 'Defense 2'), width=57).grid(row=6, column=1, columnspan=3, sticky='w')
+    ttk.Label(scenario_frame, text="Select Defense:").grid(row=7, column=0, sticky='w')
+    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Defense 1', 'Defense 2'), width=57).grid(row=7, column=1, columnspan=3, sticky='w')
     scenario_vars[f"defense_var_{scenario_number}"] = defense_var
 
 
@@ -149,18 +164,18 @@ def update_attack_config(scenario_frame, attack, scenario_number):
     if attack == 'Label Flipping':
         source_label_var = tk.StringVar()
         target_label_var = tk.StringVar()
-        ttk.Label(scenario_frame, text="Source Label:").grid(row=7, column=0, sticky='w')
-        ttk.Combobox(scenario_frame, textvariable=source_label_var, values=list(range(10)), width=57).grid(row=7, column=1, columnspan=3, sticky='w')
-        ttk.Label(scenario_frame, text="Target Label:").grid(row=8, column=0, sticky='w')
-        ttk.Combobox(scenario_frame, textvariable=target_label_var, values=list(range(10)), width=57).grid(row=8, column=1, columnspan=3, sticky='w')
+        ttk.Label(scenario_frame, text="Source Label:").grid(row=8, column=0, sticky='w')
+        ttk.Combobox(scenario_frame, textvariable=source_label_var, values=list(range(10)), width=57).grid(row=8, column=1, columnspan=3, sticky='w')
+        ttk.Label(scenario_frame, text="Target Label:").grid(row=9, column=0, sticky='w')
+        ttk.Combobox(scenario_frame, textvariable=target_label_var, values=list(range(10)), width=57).grid(row=9, column=1, columnspan=3, sticky='w')
 
         attackParams.append(source_label_var)
         attackParams.append(target_label_var)
         scenario_vars # What is this doing?????????????????????????????????????????????????????????????????????????
     elif attack == 'Model Poisoning':
         poisoning_scale_var = tk.DoubleVar()
-        ttk.Label(scenario_frame, text="Poisoning Scale:").grid(row=7, column=0, sticky='w')
-        ttk.Entry(scenario_frame, textvariable=poisoning_scale_var, width=60).grid(row=7, column=1, columnspan=3, sticky='w')
+        ttk.Label(scenario_frame, text="Poisoning Scale:").grid(row=8, column=0, sticky='w')
+        ttk.Entry(scenario_frame, textvariable=poisoning_scale_var, width=60).grid(row=8, column=1, columnspan=3, sticky='w')
         attackParams.append(poisoning_scale_var)
 
 
@@ -203,7 +218,6 @@ def checkAllFieldsFilled():
     for i, key in enumerate(all_keys_list):
         try:
             if scenario_vars[key].get() == "":
-                print(key)
                 return False
         except:
             pass
@@ -225,9 +239,13 @@ def start_simulation():
 
 
 def run_simulation():
+    #Disable run button
+    run_button.config(state="disabled")
     # Example of how to use show_results function
     simulation_results = []
+    scenario_names = []
     for i in range(int(num_scenarios_var.get())):
+        name = scenario_vars[f"name_{i}"].get()
         numEpochs = int(scenario_vars[f"epochs_var_{i}"].get())
         batchSize = int(scenario_vars[f"batch_size_var_{i}"].get())
         numClients = int(scenario_vars[f"num_clients_var_{i}"].get())
@@ -239,7 +257,6 @@ def run_simulation():
         for j in range(len(attackParams)):
             attackParamsList.append(int(attackParams[j].get()))
         
-        print(attackParamsList)
         defenceParams = []
 
 
@@ -255,13 +272,14 @@ def run_simulation():
                             attack, defence, attackParamsList, defenceParams)
         
         simulation_results.append(cm)
+        scenario_names.append(name)
 
-    global simulationComplete # Why is the redefined when its a global variable already at the top??????????????????????????????
+    global simulationComplete
     simulationComplete = True
     
-    show_results(simulation_results)
+    show_results(simulation_results, scenario_names)
 
-    # Why is the run_button never deactivated????????????????????????????????????????????????????????????????????????????????
+   
     # Enable the run button after simulations are complete
     run_button.config(state="normal")
     simulationComplete = False
@@ -284,8 +302,7 @@ def loadingScreen():
     loading_screen.destroy()
 
 
-
-def show_results(simulation_results):
+def show_results(simulation_results, scenario_names):
     # Create a new window for results
     results_window = tk.Toplevel(root)
     results_window.title("Simulation Results")
@@ -325,7 +342,7 @@ def show_results(simulation_results):
         sns.heatmap(simulation_result, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], square=True)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('True')
-        ax.set_title(f'Confusion Matrix for Scenario {index}')
+        ax.set_title(f'Confusion Matrix for {scenario_names[index]}')
 
         # Embed the confusion matrix plot in the inner frame
         canvas = FigureCanvasTkAgg(fig, master=plots_inner_frame)
@@ -340,7 +357,7 @@ def show_results(simulation_results):
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.bar(range(len(accuracies)), accuracies, color='skyblue')
     ax.set_xticks(range(len(accuracies)))
-    ax.set_xticklabels([f"Scenario {i}" for i in range(len(accuracies))])
+    ax.set_xticklabels([f"{i}" for i in scenario_names])
     ax.set_ylabel('Accuracy')
     ax.set_title('Final Accuracies of Simulations')
 
