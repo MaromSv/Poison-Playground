@@ -72,7 +72,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
     if attack == "Label Flipping":
         horizontalData = flipLables(horizontalData, attackParams[0], attackParams[1], numClients, numMalClients)
     if attack == "watermarked":
-        horizontalData = watermark(horizontalData, imageShape, numClients, numMalClients, attackParams[0])
+        horizontalData = watermark(horizontalData, numClients, numMalClients, attackParams[0], attackParams[1])
 
 
     #Simulation code
@@ -192,9 +192,9 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 # #Example of calling the function: 
 # label_flip_attack_params = [0, 5] # source and target class
 # model_attack_params = [1] # Scale value
-# watermark_attack_params = [0.5] # minimum noise value
+# watermark_attack_params = [.5, 6] # Scale value and target class
 # label_flip_defense_params = [] # 
 # model_defense_params = [10] # The largest L2-norm of the clipped local model updates is M
 # watermark_defense_params = [] # 
-# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
-#                         attack = 'model', defence = 'two_norm', attackParams = model_attack_params, defenceParams = model_defense_params)
+# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 3, numMalClients = 1, 
+#                         attack = 'watermarked', defence = '', attackParams = watermark_attack_params, defenceParams = model_defense_params)
