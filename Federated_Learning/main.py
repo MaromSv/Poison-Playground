@@ -78,7 +78,7 @@ def create_scenario_form(frame, scenario_number):
 
     defense_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Select Defense:").grid(row=7, column=0, sticky='w')
-    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Defense 1', 'Defense 2'), width=57).grid(row=7, column=1, columnspan=3, sticky='w')
+    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Two_Norm'), width=57).grid(row=7, column=1, columnspan=3, sticky='w')
     scenario_vars[f"defense_var_{scenario_number}"] = defense_var
 
 
@@ -189,6 +189,14 @@ def update_attack_config(scenario_frame, attack, scenario_number):
         attackParams.append(target_label_var)
 
     scenario_vars[f"attackParams_{scenario_number}"] = attackParams
+
+    # Update the scroll region after adding new widgets
+    scenario_frame.update_idletasks()
+    scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
+
+
+
+
 
     # Update the scroll region after adding new widgets
     scenario_frame.update_idletasks()

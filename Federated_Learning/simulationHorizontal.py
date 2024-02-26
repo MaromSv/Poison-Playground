@@ -6,7 +6,7 @@ from Federated_Learning.attacks.modelPoisoning import model_poisoning
 from Federated_Learning.attacks.labelFlipping import flipLables
 from Federated_Learning.attacks.watermark import watermark
 
-from Federated_Learning.defenses.modelPoisoning import two_norm
+from Federated_Learning.defenses.two_norm import two_norm
 
 import torch
 from sklearn.metrics import roc_auc_score
@@ -116,7 +116,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
         if attack == "Model Poisoning":
             client_models = model_poisoning(client_models, imageShape, numMalClients, False, attackParams[0])
 
-        if defence == "two_norm":
+        if defence == "Two_Norm":
             client_models = two_norm(client_models, numClients, defenceParams[0])
         # FedAvg
         ##############################################################
