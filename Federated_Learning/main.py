@@ -70,7 +70,7 @@ def create_scenario_form(frame, scenario_number):
 
     attack_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Select Attack:").grid(row=6, column=0, sticky='w')
-    attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning'), width=57)
+    attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning', 'Watermark'), width=57)
     attack_combobox.grid(row=6, column=1, columnspan=3, sticky='w')
     attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number))
     scenario_vars[f"attack_var_{scenario_number}"] = attack_var
@@ -171,13 +171,22 @@ def update_attack_config(scenario_frame, attack, scenario_number):
 
         attackParams.append(source_label_var)
         attackParams.append(target_label_var)
-        scenario_vars # What is this doing?????????????????????????????????????????????????????????????????????????
+        
     elif attack == 'Model Poisoning':
         poisoning_scale_var = tk.DoubleVar()
         ttk.Label(scenario_frame, text="Poisoning Scale:").grid(row=8, column=0, sticky='w')
         ttk.Entry(scenario_frame, textvariable=poisoning_scale_var, width=60).grid(row=8, column=1, columnspan=3, sticky='w')
         attackParams.append(poisoning_scale_var)
 
+    elif attack == "Watermark":
+        scale_var = tk.DoubleVar()
+        target_label_var = tk.StringVar()
+        ttk.Label(scenario_frame, text="Scale:").grid(row=8, column=0, sticky='w')
+        ttk.Entry(scenario_frame, textvariable=scale_var, width=60).grid(row=8, column=1, columnspan=3, sticky='w')
+        ttk.Label(scenario_frame, text="Target Label:").grid(row=9, column=0, sticky='w')
+        ttk.Combobox(scenario_frame, textvariable=target_label_var, values=list(range(10)), width=57).grid(row=9, column=1, columnspan=3, sticky='w')
+        attackParams.append(scale_var)
+        attackParams.append(target_label_var)
 
     scenario_vars[f"attackParams_{scenario_number}"] = attackParams
 
@@ -355,11 +364,16 @@ def show_results(simulation_results, scenario_names):
 
     # Plot the final accuracies
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.bar(range(len(accuracies)), accuracies, color='skyblue')
+    bars = ax.bar(range(len(accuracies)), accuracies, color='skyblue')
     ax.set_xticks(range(len(accuracies)))
     ax.set_xticklabels([f"{i}" for i in scenario_names])
     ax.set_ylabel('Accuracy')
     ax.set_title('Final Accuracies of Simulations')
+
+    # Display accuracy values on top of the bars
+    for bar, accuracy in zip(bars, accuracies):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width() / 2, height, f'{accuracy:.3f}', ha='center', va='bottom', fontsize=8)
 
     # Embed the accuracy plot in the inner frame
     canvas = FigureCanvasTkAgg(fig, master=plots_inner_frame)

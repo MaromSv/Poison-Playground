@@ -78,7 +78,7 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 
     if attack == "Label Flipping":
         verticalData = flipLables(verticalData, attackParams[0], attackParams[1], numClients, numMalClients)
-    if attack == "watermarked":
+    if attack == "Watermark":
         verticalData = watermark(verticalData, numClients, numMalClients, attackParams[0], attackParams[1])
 
 

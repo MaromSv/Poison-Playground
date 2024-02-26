@@ -71,7 +71,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
   
     if attack == "Label Flipping":
         horizontalData = flipLables(horizontalData, attackParams[0], attackParams[1], numClients, numMalClients)
-    if attack == "watermarked":
+    if attack == "Watermark":
         horizontalData = watermark(horizontalData, numClients, numMalClients, attackParams[0], attackParams[1])
 
 
