@@ -7,6 +7,8 @@ from Federated_Learning.attacks.labelFlipping import flipLables
 from Federated_Learning.attacks.watermark import watermark
 
 from Federated_Learning.defenses.two_norm import two_norm
+from Federated_Learning.defenses.lf import clientSplitter
+from Federated_Learning.defenses.foolsGold import foolsGold
 
 import torch
 from sklearn.metrics import roc_auc_score
@@ -58,7 +60,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
             x = F.relu(self.L1(x))
             x = self.L2(x)
             return x
-    client_models = [Net().float().to(device) for _ in range(numClients)]
+    # client_models = [Net().float().to(device) for _ in range(numClients)] ???????????????????????????????????????????????????????????????????????????? delete prob
 
     # Initialize client and server in federated setting
     client_models = [Net().float().to(device) for _ in range(numClients)]
@@ -106,18 +108,15 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
                 epoch_outputs.append(outputs.detach())
                 epoch_labels.append(labels)
 
-
-        # Aggregate global weights on the server
-        # server_weights = {}
-        # for key in client_models[0].state_dict():
-        #     server_weights[key] = sum([model.state_dict()[key] for model in client_models]) / clients
-        # server_model.load_state_dict(server_weights)
         
         if attack == "Model Poisoning":
             client_models = model_poisoning(client_models, imageShape, numMalClients, False, attackParams[0])
 
         if defence == "Two_Norm":
             client_models = two_norm(client_models, numClients, defenceParams[0])
+        
+        if defence == "Fools Gold":
+            alphas = foolsGold(server_model, client_models, numClients, 1)
         # FedAvg
         ##############################################################
         # Initialize the dictionary to store aggregated model weights
@@ -128,12 +127,18 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 
         # Aggregate weights and count total samples
         for client_id in range(numClients):
-            client_samples = len(horizontalData[client_id][0])  # Assuming horizontalData[client_id][0] contains training data
+            client_samples = len(horizontalData[client_id][0])
             client_weights = client_models[client_id].state_dict()
 
             for key in client_weights:
-                server_weights[key] = server_weights.get(key, 0) + client_weights[key] * client_samples
+                if defence == "Fools Gold":
+                    server_weights[key] = server_weights.get(key, 0) + (client_weights[key] * client_samples) * alphas[client_id]
+                else:
+                    server_weights[key] = server_weights.get(key, 0) + client_weights[key] * client_samples
                 total_samples[key] += client_samples
+        
+        if defence == "lf":
+            clientSplitter(numClients, horizontalData, client_models, numEpochs, defenceParams[0], server_weights)
 
         # Compute the weighted average
         for key in server_weights:
@@ -190,11 +195,11 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 
 
 # #Example of calling the function: 
-# label_flip_attack_params = [0, 5] # source and target class
+# label_flip_attack_params = [0, 1] # source and target class
 # model_attack_params = [1] # Scale value
 # watermark_attack_params = [.5, 6] # Scale value and target class
-# label_flip_defense_params = [] # 
+# label_flip_defense_params = [100] # 
 # model_defense_params = [10] # The largest L2-norm of the clipped local model updates is M
 # watermark_defense_params = [] # 
-# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 3, numMalClients = 1, 
-#                         attack = 'watermarked', defence = '', attackParams = watermark_attack_params, defenceParams = model_defense_params)
+# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 4, numMalClients = 1, 
+#                         attack = 'Label Flipping', defence = '', attackParams = label_flip_attack_params, defenceParams = label_flip_defense_params)

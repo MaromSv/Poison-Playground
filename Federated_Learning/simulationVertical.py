@@ -7,6 +7,7 @@ from Federated_Learning.attacks.labelFlipping import flipLables
 from Federated_Learning.attacks.watermark import watermark
 
 from Federated_Learning.defenses.two_norm import two_norm
+from Federated_Learning.defenses.foolsGold import foolsGold
 
 import torch
 import torch.nn as nn
@@ -132,6 +133,9 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
         
         if defence == "Two_Norm":
             clients = two_norm(clients, numClients, defenceParams[0])
+        
+        if defence == "Fools Gold":
+            alphas = foolsGold(server, clients, numClients, 1)
 
         #Calculate Acccuracy
         epoch_outputs = torch.cat(epoch_outputs).cpu()
@@ -147,7 +151,10 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
     client_outputs = []
     for clientID in range(numClients):
         inputs = torch.tensor(verticalData[clientID][2]).to(device).float()
-        outputs = clients[clientID](inputs)
+        if defence == "Fools Gold":
+            outputs = clients[clientID](inputs) * alphas[clientID]
+        else:
+            outputs = clients[clientID](inputs)
         client_outputs.append(outputs)
     labels = torch.tensor(verticalData[0][3]).to(device)
     combined_output = torch.cat(client_outputs, dim=1)
@@ -184,4 +191,4 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 # model_defense_params = [1000] # The largest L2-norm of the clipped local model updates is M
 # watermark_defense_params = [] # 
 # accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 3, numMalClients = 1, 
-#                         attack = 'watermarked', defence = '', attackParams = watermark_attack_params, defenceParams = model_defense_params)
+#                         attack = 'Label Flipping', defence = 'Fools Gold', attackParams = label_flip_attack_params, defenceParams = model_defense_params)
