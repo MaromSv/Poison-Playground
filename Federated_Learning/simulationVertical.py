@@ -135,7 +135,7 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
             clients = two_norm(clients, numClients, defenceParams[0])
         
         if defence == "Fools Gold":
-            alphas = foolsGold(server, clients, numClients, 1)
+            alphas = foolsGold(clients, numClients, 1)
 
         #Calculate Acccuracy
         epoch_outputs = torch.cat(epoch_outputs).cpu()

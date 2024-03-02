@@ -3,10 +3,7 @@
 import numpy as np
 from decimal import Decimal
 
-def foolsGold(global_model, clientModels, numClients, confidence_parameter):
-    # Initialize the global model at iteration t
-    server_dict = global_model.state_dict()
-    server_weights = np.concatenate([server_dict[key].numpy().flatten() for key in server_dict])
+def foolsGold(clientModels, numClients, confidence_parameter):
     cosines = [[0 for _ in range(numClients)] for _ in range(numClients)]
     v = []
     alpha = []
@@ -37,9 +34,7 @@ def foolsGold(global_model, clientModels, numClients, confidence_parameter):
     # Logit function
     for i in range(numClients):
         alpha[i] = alpha[i] / max(alpha)
+        print(f"alpha: {alpha[i]}, fraction: {alpha[i] / (1 - alpha[i])}, log: {np.log(alpha[i] / (1 - alpha[i]))}")
         alpha[i] = confidence_parameter * (np.log(alpha[i] / (1 - alpha[i])) + 0.5)
-
-    # Federated SGD iteration
-        # w_t += alpha[i] * clientModels[i].state_dict()
 
     return alpha

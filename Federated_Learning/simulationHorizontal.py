@@ -116,7 +116,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
             client_models = two_norm(client_models, numClients, defenceParams[0])
         
         if defence == "Fools Gold":
-            alphas = foolsGold(server_model, client_models, numClients, 1)
+            alphas = foolsGold(client_models, numClients, 1)
         # FedAvg
         ##############################################################
         # Initialize the dictionary to store aggregated model weights
@@ -201,5 +201,5 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 # label_flip_defense_params = [100] # 
 # model_defense_params = [10] # The largest L2-norm of the clipped local model updates is M
 # watermark_defense_params = [] # 
-# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 4, numMalClients = 1, 
-#                         attack = 'Label Flipping', defence = '', attackParams = label_flip_attack_params, defenceParams = label_flip_defense_params)
+# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 3, numMalClients = 1, 
+#                         attack = '', defence = '', attackParams = watermark_attack_params, defenceParams = label_flip_defense_params)
