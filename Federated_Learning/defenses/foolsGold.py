@@ -34,7 +34,6 @@ def foolsGold(clientModels, numClients, confidence_parameter):
     # Logit function
     for i in range(numClients):
         alpha[i] = alpha[i] / max(alpha)
-        print(f"alpha: {alpha[i]}, fraction: {alpha[i] / (1 - alpha[i])}, log: {np.log(alpha[i] / (1 - alpha[i]))}")
         alpha[i] = confidence_parameter * (np.log(alpha[i] / (1 - alpha[i])) + 0.5)
 
     return alpha
