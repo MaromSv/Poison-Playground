@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
+from sklearn.metrics import confusion_matrix
 
 import matplotlib.pyplot as plt
 
@@ -20,6 +20,8 @@ simulationComplete = False
 
 global scenario_vars
 scenario_vars = {} # This will store the variables for all scenarios
+numOfClasses = 10
+
 
 def create_scenario_form(frame, scenario_number):
     """Creates a form for a single scenario inside the given frame."""
@@ -277,18 +279,28 @@ def run_simulation():
         defenceParams = []
 
 
+        trials = int(num_trials_var.get())
+        trialResults = []
+        for j in range(trials):
+    
+            if scenario_vars[f"data_partitioning_var_{i}"].get() == "Vertical":
 
-        if scenario_vars[f"data_partitioning_var_{i}"].get() == "Vertical":
+                accuracy, cm = runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, 
+                                attack, defence, attackParamsList, defenceParams)
+                
+            elif scenario_vars[f"data_partitioning_var_{i}"].get() == "Horizontal":
 
-            accuracy, cm = runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, 
-                            attack, defence, attackParamsList, defenceParams)
+                accuracy, cm = runHorizontalSimulation(False, numEpochs, batchSize, numClients, numMalClients, 
+                                attack, defence, attackParamsList, defenceParams)
             
-        elif scenario_vars[f"data_partitioning_var_{i}"].get() == "Horizontal":
-
-            accuracy, cm = runHorizontalSimulation(False, numEpochs, batchSize, numClients, numMalClients, 
-                            attack, defence, attackParamsList, defenceParams)
+            trialResults.append(cm)
         
-        simulation_results.append(cm)
+        cmSum = confusion_matrix(y_true=[], y_pred=[], labels=range(numOfClasses)) #(re)Initialize empty CM
+        for m in trialResults:
+            cmSum +=m
+
+        
+        simulation_results.append(cmSum)
         scenario_names.append(name)
 
     global simulationComplete
@@ -418,12 +430,26 @@ root = tk.Tk()
 root.title("PoisonPlayground - Federated Learning Simulator")
 root.geometry("700x600")
 
+
+
+
 # Number of scenarios input
 num_scenarios_var = tk.StringVar()
 num_scenarios_label = ttk.Label(root, text="Number of Scenarios:")
 num_scenarios_label.pack(pady=5)
 num_scenarios_entry = ttk.Entry(root, textvariable=num_scenarios_var)
 num_scenarios_entry.pack(pady=5)
+
+# Create a label for the number of trials
+num_trials_label = ttk.Label(root, text="Number of Trials:")
+num_trials_label.pack(pady=5)
+
+# Create an entry box for the number of trials
+num_trials_var = tk.StringVar()
+num_trials_entry = ttk.Entry(root, textvariable=num_trials_var)
+num_trials_entry.pack(pady=5)
+
+
 
 # Button to create scenario forms
 create_scenarios_button = ttk.Button(root, text="Create Scenarios", command=create_scenarios)
