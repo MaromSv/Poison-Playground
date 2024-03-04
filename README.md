@@ -60,7 +60,11 @@
 <!-- ABOUT THE PROJECT -->
 ## About the project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com) <!-- Need to replace this!!!!!!!!!!!!!!!!!!!!!!!!!!1 -->
+<div align="center">
+  <a href="https://github.com/MaromSv/Poison-Playground">
+    <img src="images/teaser.png" alt="Teaser" width="80" height="80">
+  </a>
+</div>
 
 Poison Playground is a benchmarking tool that can be used to compare how vertical and horizontal federated learning models handle different attacks and defenses. The base tool includes some poisoning attacks and defenses. <br />
 Poison Playgroud uses the <a href="https://www.tensorflow.org/datasets/catalog/mnist">MNIST Digits</a> dataset using TensorFlow.
@@ -90,8 +94,6 @@ To ensure you have all of the necessary packages, first run the [requirements.tx
 
 5. Finally, once all of the instances are done, the GUI will display a new window with <span style="font-size: x-large;">(describe the metrics and graphs displayed)</span>.
 
-<p align="right">(<a href="#">back to top</a>)</p>
-
 
 
 <!-- ATTACKS AND DEFENSES -->
@@ -99,12 +101,10 @@ To ensure you have all of the necessary packages, first run the [requirements.tx
 
 | Attack/Defense | Name | Paper source |
 |---------|----------|----------|
-| Attack  | Label flipping | [Data Poisoning Attacks Against Federated Learning Systems](label-flipping) |
-| Attack  | Model poisoning | [MPAF: Model Poisoning Attacks to Federated Learning based on Fake Clients](model-poisoning) |
-| Defense | Fools gold | [Mitigating Sybils in Federated Learning Poisoning](fools-gold) |
-| Defense | Two norm | [Data Poisoning Attacks Against Federated Learning Systems](two-norm) |
-
-<p align="right">(<a href="#">back to top</a>)</p>
+| Attack  | Label flipping | [Data Poisoning Attacks Against Federated Learning Systems](https://arxiv.org/abs/2007.08432) |
+| Attack  | Model poisoning | [MPAF: Model Poisoning Attacks to Federated Learning based on Fake Clients](https://arxiv.org/abs/2203.08669) |
+| Defense | Fools gold | [Mitigating Sybils in Federated Learning Poisoning](https://arxiv.org/abs/1808.04866) |
+| Defense | Two norm | [Data Poisoning Attacks Against Federated Learning Systems](https://arxiv.org/abs/2203.08669) |
 
 
 
@@ -118,8 +118,6 @@ The below three steps describe how you can add your own attack or defense to Poi
 2) **Add the attack/defense to both simulation's code:** To execute your attack/defense, you need to add it to the simulation files. Depending on how your code works, the location of execution will vary. Some examples can be seen with our implemented attacks and defenses.
 
 3) **Add the attack/defense to the GUI:** <span style="font-size: x-large;">(Not sure)</span>
-
-<p align="right">(<a href="#">back to top</a>)</p>
 
 
 
@@ -137,8 +135,6 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-<p align="right">(<a href="#">back to top</a>)</p>
-
 
 
 <!-- CONTACT -->
@@ -148,8 +144,6 @@ Yusef Ahmed - [LinkedIn](https://www.linkedin.com/in/yusefahmd/) - yusefahmed040
 
 Marom Sverdlov - [LinkedIn](https://www.linkedin.com/in/marom-sverdlov-251370252/) - GMAIL
 
-<p align="right">(<a href="#">back to top</a>)</p>
-
 
 
 <!-- ACKNOWLEDGMENTS -->
@@ -158,23 +152,3 @@ Marom Sverdlov - [LinkedIn](https://www.linkedin.com/in/marom-sverdlov-251370252
 * []()
 * []()
 * []()
-
-<p align="right">(<a href="#">back to top</a>)</p>
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-[product-screenshot]: images/screenshot.png
-
-<!-- Attack arxiv links -->
-[label-flipping]: https://arxiv.org/abs/2007.08432
-[model-poisoning-attack]: https://arxiv.org/abs/2203.08669
-
-<!-- Defense arxiv links -->
-[fools-gold]: https://arxiv.org/abs/1808.04866
-[two-norm]: https://arxiv.org/abs/2203.08669
-
-
-
-[contributors-shield]: https://img.shields.io/github/contributors/MaromSv/Poison-Playground.svg?style=for-the-badge
-[contributors-url]: https://github.com/MaromSv/Poison-Playground/graphs/contributors
