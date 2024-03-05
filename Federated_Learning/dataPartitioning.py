@@ -5,7 +5,7 @@ from PIL import Image
 
 
 class dataPartitioning : 
-    def __init__(self, num_clients):
+    def __init__(self, num_clients, type):
         #Seed so that results are reproducible
         np.random.seed(20)
 
@@ -18,9 +18,12 @@ class dataPartitioning :
 
         self.verticalImageShape = (28, 28) #initialize image shape
 
-        self.horizontal_clients_datasets = self.horizontalDivideData(self.x_train, self.y_train, self.x_test,  self.y_test)
-
-        self.vertical_clients_datasets = self.verticalDivideData(self.x_train, self.y_train, self.x_test,  self.y_test)
+        if type == "Horizontal":
+            self.dataset = self.horizontalDivideData(self.x_train, self.y_train, self.x_test, self.y_test)
+        elif type == "IID":
+            self.dataset = self.horizontalDivideDataIID(self.x_train, self.y_train, self.x_test, self.y_test)
+        elif type == "Vertical":
+            self.dataset = self.verticalDivideData(self.x_train, self.y_train, self.x_test, self.y_test)
         
         self.globalTestData = (self.x_test, self.y_test)
 
@@ -65,12 +68,47 @@ class dataPartitioning :
     
 
 
-    def horizontalDivideDataIDD(self, x_train, y_train, x_test, y_test):
+    def horizontalDivideDataIID(self, x_train, y_train, x_test, y_test):
+        #Normalize data
+        x_train, x_test = self.normalizeData(x_train, x_test)
+
+        indices_train = np.arange(len(x_train))
+        np.random.shuffle(indices_train)
+
+        # The test data can be split arbitrarily, as done in non-IID
+        indices_test = np.arange(len(x_test))
+        np.random.shuffle(indices_test)
+        client_indicies_test = np.array_split(indices_test, self.num_clients)
+
+
+        nextClientIndex = [0] * 10  # Used to determine which clientID will get the next image of each class
+        clients_x_train = [[] for _ in range(self.num_clients)]
+        clients_y_train = [[] for _ in range(self.num_clients)]
+        clients_count = [[0 for _ in range(10)] for _ in range(self.num_clients)]
+
+        # We check each image's label, and give it to the clientID specified in nextClientIndex[label]
+        for i in indices_train:
+            label = y_train[i]
+            clientID = nextClientIndex[label]
+
+            clients_x_train[clientID].append(x_train[i])
+            clients_y_train[clientID].append(label)
+            clients_count[clientID][label] += 1
+
+            nextClientIndex[label] = (nextClientIndex[label] + 1) % self.num_clients
+
         
+        # Here we add the test data, and format to be the desired shape
+        horizontal_IID_clients_datasets = []
+        for client in range(self.num_clients):
+            client_index_test = client_indicies_test[client]
+            client_x_train = clients_x_train[client]
+            client_y_train = clients_y_train[client]
+            client_x_test = x_test[client_index_test]
+            client_y_test = y_test[client_index_test]
+            horizontal_IID_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
 
-        #TODO: IMPLEMENT THIS
-
-        return
+        return horizontal_IID_clients_datasets
 
 
 
@@ -134,11 +172,8 @@ class dataPartitioning :
     def getVerticalImageShape(self):
         return self.verticalImageShape
 
-    def getDataSets(self, vertical):
-        if vertical == True:
-            return self.vertical_clients_datasets
-        else:
-            return self.horizontal_clients_datasets
+    def getDataSet(self):
+        return self.dataset
     
     def getGlobalTestData(self):
         return self.globalTestData
@@ -154,9 +189,9 @@ def plot_images(images, labels):
     fig, axes = plt.subplots(1, num_images, figsize=(12, 3))
 
     for i in range(num_images):
-        axes[i].imshow(images[i], cmap='gray')  # Assuming grayscale images, adjust cmap accordingly
-        axes[i].set_title(f"Label: {labels[i]}")
-        axes[i].axis('off')
+        axes.imshow(images, cmap='gray')  # Assuming grayscale images, adjust cmap accordingly
+        axes.set_title(f"Label: {labels}")
+        axes.axis('off')
 
     plt.show()
 
@@ -164,7 +199,7 @@ def plot_images(images, labels):
 
 
 
-data = dataPartitioning(5)
+# data = dataPartitioning(3)
 # x = data.getDataSets(True)
 
 # print(len(x[0]))
@@ -172,7 +207,7 @@ data = dataPartitioning(5)
 
 
 # # # datasets = data.horizontalDivideData()
-datasets = data.horizontal_clients_datasets
+# datasets = data.horizontal_clients_datasets
 
 # # # Plot images from the first client's dataset as an example
 # client_0_images_train, client_0_labels_train, _, _ = x[16] #first client

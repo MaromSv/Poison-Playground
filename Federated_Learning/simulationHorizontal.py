@@ -36,8 +36,11 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
                         defence, attackParams, defenceParams):
 
     #Load data
-    dataLoader = dataPartitioning(numClients)
-    horizontalData = dataLoader.getDataSets(False)
+    if IID:
+        dataLoader = dataPartitioning(numClients, "IID")
+    else:
+        dataLoader = dataPartitioning(numClients, "Horizontal")
+    horizontalData = dataLoader.getDataSet()
     unpartionedTestData = dataLoader.getUnpartionedTestData()
     imageShape = dataLoader.getHorizontalImageShape()
     

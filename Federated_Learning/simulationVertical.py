@@ -33,8 +33,8 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 
 
     #Load data
-    dataLoader = dataPartitioning(numClients)
-    verticalData = dataLoader.getDataSets(True)
+    dataLoader = dataPartitioning(numClients, "Vertical")
+    verticalData = dataLoader.getDataSet()
     imageShape = dataLoader.getVerticalImageShape()
 
 
