@@ -142,7 +142,7 @@ Don't forget to give the project a star! Thanks again!
 
 Yusef Ahmed - [LinkedIn](https://www.linkedin.com/in/yusefahmd/) - yusefahmed0403@gmail.com
 
-Marom Sverdlov - [LinkedIn](https://www.linkedin.com/in/marom-sverdlov-251370252/) - GMAIL
+Marom Sverdlov - [LinkedIn](https://www.linkedin.com/in/marom-sverdlov-251370252/) - maroms.private@gmail.com
 
 
 

@@ -3,7 +3,7 @@
 import numpy as np
 from decimal import Decimal
 
-def foolsGold(clientModels, numClients, confidence_parameter):
+def foolsGold(clientModels, numClients, confidence_parameter = 1):
     cosines = [[0 for _ in range(numClients)] for _ in range(numClients)]
     v = []
     alpha = []

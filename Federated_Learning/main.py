@@ -80,7 +80,9 @@ def create_scenario_form(frame, scenario_number):
 
     defense_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Select Defense:").grid(row=7, column=0, sticky='w')
-    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Two_Norm'), width=57).grid(row=7, column=1, columnspan=3, sticky='w')
+    defence_combobox = ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Two_Norm', 'Fools Gold'), width=57)
+    defence_combobox.grid(row=7, column=1, columnspan=3, sticky='w')
+    # defence_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_defence_config(frame, defense_var.get(), scenario_number, 7, 5))
     scenario_vars[f"defense_var_{scenario_number}"] = defense_var
 
 
@@ -156,10 +158,7 @@ def update_attack_config(scenario_frame, attack, scenario_number):
     scenario_vars[f"attack_var_{scenario_number}"] = attack_var
 
     
-    defense_var = scenario_vars[f"defense_var_{scenario_number}"]
-    ttk.Label(scenario_frame, text="Select Defense:").grid(row=7, column=0, sticky='w')
-    ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Defense 1', 'Defense 2'), width=57).grid(row=7, column=1, columnspan=3, sticky='w')
-    scenario_vars[f"defense_var_{scenario_number}"] = defense_var
+
 
 
     attackParams = []
@@ -173,12 +172,16 @@ def update_attack_config(scenario_frame, attack, scenario_number):
 
         attackParams.append(source_label_var)
         attackParams.append(target_label_var)
+        rowNum = 9
+        entryNum = 5
         
     elif attack == 'Model Poisoning':
         poisoning_scale_var = tk.DoubleVar()
         ttk.Label(scenario_frame, text="Poisoning Scale:").grid(row=8, column=0, sticky='w')
         ttk.Entry(scenario_frame, textvariable=poisoning_scale_var, width=60).grid(row=8, column=1, columnspan=3, sticky='w')
         attackParams.append(poisoning_scale_var)
+        rowNum = 8
+        entryNum = 6
 
     elif attack == "Watermark":
         scale_var = tk.DoubleVar()
@@ -189,6 +192,17 @@ def update_attack_config(scenario_frame, attack, scenario_number):
         ttk.Combobox(scenario_frame, textvariable=target_label_var, values=list(range(10)), width=57).grid(row=9, column=1, columnspan=3, sticky='w')
         attackParams.append(scale_var)
         attackParams.append(target_label_var)
+        entryNum = 6
+        rowNum = 9
+    else:
+        rowNum = 7
+
+    defense_var = scenario_vars[f"defense_var_{scenario_number}"]
+    ttk.Label(scenario_frame, text="Select Defense:").grid(row=rowNum+1, column=0, sticky='w')
+    defence_combobox = ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Two_Norm', 'Fools Gold'), width=57)
+    defence_combobox.grid(row=rowNum + 1, column=1, columnspan=3, sticky='w')
+    # defence_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_defence_config(frame, defense_var.get(), scenario_number, rowNum, entryNum))
+    scenario_vars[f"defense_var_{scenario_number}"] = defense_var
 
     scenario_vars[f"attackParams_{scenario_number}"] = attackParams
 
@@ -197,12 +211,43 @@ def update_attack_config(scenario_frame, attack, scenario_number):
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
 
 
-
-
-
     # Update the scroll region after adding new widgets
     scenario_frame.update_idletasks()
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
+
+
+# def update_defence_config(scenario_frame, defence, scenario_number, rowNum, entryNum):
+#     global scenario_vars
+
+#     defenceParams = []
+#     if defence == 'Two_Norm':
+#         norm_threshold = tk.DoubleVar()
+#         ttk.Label(scenario_frame, text="Norm Threshold:").grid(row=rowNum + 1, column=0, sticky='w')
+#         ttk.Combobox(scenario_frame, textvariable=norm_threshold, values=list(range(10)), width=57).grid(row=rowNum + 1, column=1, columnspan=3, sticky='w')
+
+#         defenceParams.append(norm_threshold)
+
+#         # rowNum += 1
+        
+#     elif defence == 'Fools Gold':
+#         confidence_param = tk.DoubleVar()
+#         ttk.Label(scenario_frame, text="Confidence Param:").grid(row=rowNum + 1, column=0, sticky='w')
+#         ttk.Entry(scenario_frame, textvariable=confidence_param, width=60).grid(row=rowNum + 1, column=1, columnspan=3, sticky='w')
+#         defenceParams.append(confidence_param)
+#         # rowNum = 8
+
+#     else:
+
+#         for widget_name, widget in scenario_frame.children.items():
+#             if widget_name.endswith("label" + str(rowNum + 2)):
+#                 print(widget_name)
+#                 widget.grid_forget()
+#             elif widget_name.endswith("entry" + str(entryNum + 1)):
+#                 print(widget_name)
+#                 widget.grid_forget()
+
+
+
 
 
 def create_scenarios():

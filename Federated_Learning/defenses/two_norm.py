@@ -2,7 +2,7 @@
 
 import numpy as np
 
-def two_norm(client_models, numClients, M):
+def two_norm(client_models, numClients, M = 10):
     for clientID in range(numClients):
         client_weights = client_models[clientID].state_dict()
 
