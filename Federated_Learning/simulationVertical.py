@@ -29,11 +29,11 @@ defenceParams - array of params corresponding to the selected attack
 Note: no option for IID as by definition the data wil awlays be IID in vertical
 '''
 def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attack, 
-                        defence, attackParams, defenceParams):
+                        defence, attackParams, defenceParams, seed):
 
 
     #Load data
-    dataLoader = dataPartitioning(numClients, "Vertical")
+    dataLoader = dataPartitioning(numClients, "Vertical", seed)
     verticalData = dataLoader.getDataSet()
     imageShape = dataLoader.getVerticalImageShape()
 

@@ -5,9 +5,9 @@ from PIL import Image
 
 
 class dataPartitioning : 
-    def __init__(self, num_clients, type):
+    def __init__(self, num_clients, type, seed):
         #Seed so that results are reproducible
-        np.random.seed(20)
+        np.random.seed(seed)
 
          # Load dataset
         (self.x_train, self.y_train), (self.x_test, self.y_test) = tf.keras.datasets.mnist.load_data()

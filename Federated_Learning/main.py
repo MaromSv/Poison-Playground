@@ -23,6 +23,19 @@ scenario_vars = {} # This will store the variables for all scenarios
 numOfClasses = 10
 
 
+DEFAULT_VALUES = {
+    "name": "Default Scenario",
+    "data_partitioning": "Horizontal",  # Vertical, Horizontal, or Horizontal_IID
+    "epochs": "3",
+    "batch_size": "16",
+    "num_clients": "2",
+    "num_malicious_clients": "0",
+    "attack": "None",  # None, Label Flipping, Model Poisoning, Watermark
+    "defense": "None",  # None, Two_Norm, Fools Gold
+}
+
+
+
 def create_scenario_form(frame, scenario_number):
     """Creates a form for a single scenario inside the given frame."""
     scenario_frame = ttk.LabelFrame(frame, text=f"Scenario {scenario_number}", padding=(10, 10))
@@ -92,7 +105,7 @@ def create_scenario_form(frame, scenario_number):
     frame.update_idletasks()  # This updates the layout
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
 
-    
+
 
 
 def update_attack_config(scenario_frame, attack, scenario_number, rowNum):
@@ -262,6 +275,18 @@ def update_defence_config(scenario_frame, defence, scenario_number, rowNum):
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
 
 
+def set_default_values():
+    global scenario_vars
+    for i in range(int(num_scenarios_var.get())):
+        scenario_vars[f"name_{i}"].set(DEFAULT_VALUES["name"])
+        scenario_vars[f"data_partitioning_var_{i}"].set(DEFAULT_VALUES["data_partitioning"])
+        scenario_vars[f"epochs_var_{i}"].set(DEFAULT_VALUES["epochs"])
+        scenario_vars[f"batch_size_var_{i}"].set(DEFAULT_VALUES["batch_size"])
+        scenario_vars[f"num_clients_var_{i}"].set(DEFAULT_VALUES["num_clients"])
+        scenario_vars[f"num_malicious_clients_var_{i}"].set(DEFAULT_VALUES["num_malicious_clients"])
+        scenario_vars[f"attack_var_{i}"].set(DEFAULT_VALUES["attack"])
+        scenario_vars[f"defense_var_{i}"].set(DEFAULT_VALUES["defense"])
+
 
 
 def create_scenarios():
@@ -344,6 +369,7 @@ def run_simulation():
         print(defenceParamsList)
 
       
+        seed = int(seed_var.get())
 
         trials = int(num_trials_var.get())
         trialResults = []
@@ -352,12 +378,12 @@ def run_simulation():
             if scenario_vars[f"data_partitioning_var_{i}"].get() == "Vertical":
 
                 accuracy, cm = runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, 
-                                attack, defence, attackParamsList, defenceParamsList)
+                                attack, defence, attackParamsList, defenceParamsList, seed)
                 
             elif scenario_vars[f"data_partitioning_var_{i}"].get() == "Horizontal":
 
                 accuracy, cm = runHorizontalSimulation(False, numEpochs, batchSize, numClients, numMalClients, 
-                                attack, defence, attackParamsList, defenceParamsList)
+                                attack, defence, attackParamsList, defenceParamsList, seed)
             
             trialResults.append(cm)
         
@@ -494,39 +520,87 @@ def show_results(simulation_results, scenario_names):
 # Main window setup
 root = tk.Tk()
 root.title("PoisonPlayground - Federated Learning Simulator")
-root.geometry("700x600")
+root.geometry("1200x600")
 
+# Main container frame
+container_frame = ttk.Frame(root)
+container_frame.pack(fill='both', expand=True, pady=10, padx=10)
 
+# Left frame for controls and canvas
+left_frame = ttk.Frame(container_frame)
+left_frame.pack(side='left', fill='both', expand=True)
 
+# Right frame for the explanation
+right_frame = ttk.Frame(container_frame, width=200)
+right_frame.pack(side='right', fill='y', padx=10)
 
-# Number of scenarios input
+# Explanation text
+explanation_text = """Welcome to PoisonPlayground!
+This tool simulates federated learning scenarios, allowing you to configure various parameters and 
+attacks for educational and research purposes. Use the controls on the left to set up your scenarios 
+and start the simulation. Results will be displayed graphically."""
+
+explanation_label = ttk.Label(right_frame, text=explanation_text, wraplength=180, justify="left")
+explanation_label.pack(pady=10, padx=10)
+
 num_scenarios_var = tk.StringVar()
-num_scenarios_label = ttk.Label(root, text="Number of Scenarios:")
-num_scenarios_label.pack(pady=5)
-num_scenarios_entry = ttk.Entry(root, textvariable=num_scenarios_var)
-num_scenarios_entry.pack(pady=5)
+num_trials_var = tk.DoubleVar()
+seed_var = tk.DoubleVar()
 
-# Create a label for the number of trials
-num_trials_label = ttk.Label(root, text="Number of Trials:")
-num_trials_label.pack(pady=5)
+# Create an input frame for scenario and trial inputs
+input_frame = ttk.Frame(left_frame)
+input_frame.pack(pady=10, padx=10, fill='x')
 
-# Create an entry box for the number of trials
-num_trials_var = tk.StringVar()
-num_trials_entry = ttk.Entry(root, textvariable=num_trials_var)
-num_trials_entry.pack(pady=5)
+# Place "Number of Scenarios" and "Number of Trials" side by side
+num_scenarios_label = ttk.Label(input_frame, text="Number of Scenarios:")
+num_scenarios_label.grid(row=0, column=0, padx=5, sticky='w')
+num_scenarios_entry = ttk.Entry(input_frame, textvariable=num_scenarios_var)
+num_scenarios_entry.grid(row=0, column=1, padx=5, sticky='ew')
+
+num_trials_label = ttk.Label(input_frame, text="Number of Trials:")
+num_trials_label.grid(row=0, column=2, padx=20, sticky='w')  # Added padding for visual separation
+num_trials_entry = ttk.Entry(input_frame, textvariable=num_trials_var)
+num_trials_entry.grid(row=0, column=3, padx=5, sticky='ew')
 
 
+# "Seed" input
+seed_label = ttk.Label(input_frame, text="Seed:")
+seed_label.grid(row=0, column=4, padx=20, sticky='w')  # Ensure consistent padding for visual separation
+seed_entry = ttk.Entry(input_frame, textvariable=seed_var)
+seed_entry.grid(row=0, column=5, padx=5, sticky='ew')
 
-# Button to create scenario forms
-create_scenarios_button = ttk.Button(root, text="Create Scenarios", command=create_scenarios)
-create_scenarios_button.pack(pady=10)
+# Adjust grid column configuration to allocate space properly
+input_frame.grid_columnconfigure(1, weight=1)
+input_frame.grid_columnconfigure(3, weight=1)
+input_frame.grid_columnconfigure(5, weight=1)  # Ensure the seed entry expands equally
+
+input_frame.grid_columnconfigure(1, weight=1)
+input_frame.grid_columnconfigure(3, weight=1)
+
+# Create an actions frame for buttons
+actions_frame = ttk.Frame(left_frame)
+actions_frame.pack(pady=10, padx=10, fill='x')
+
+# Place "Create Scenarios" and "Set Defaults" buttons side by side
+create_scenarios_button = ttk.Button(actions_frame, text="Create Scenarios", command=create_scenarios)
+create_scenarios_button.grid(row=0, column=0, padx=5, sticky='ew')
+
+set_defaults_button = ttk.Button(actions_frame, text="Set Defaults", command=set_default_values)
+set_defaults_button.grid(row=0, column=1, padx=5, sticky='ew')
+
+actions_frame.grid_columnconfigure(0, weight=1)
+actions_frame.grid_columnconfigure(1, weight=1)
+
+# Ensure the main frame expands to fill the window
+main_frame = ttk.Frame(root)
+main_frame.pack(fill='both', expand=True, pady=10)
 
 # Scrollable frame setup
 main_frame = ttk.Frame(root)  # Main frame to hold the canvas and scrollbar
 main_frame.pack(fill='both', expand=True, pady=10)
 
-scenarios_canvas = tk.Canvas(main_frame)
-scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=scenarios_canvas.yview)
+scenarios_canvas = tk.Canvas(left_frame)
+scrollbar = ttk.Scrollbar(left_frame, orient="vertical", command=scenarios_canvas.yview)
 scenarios_canvas.configure(yscrollcommand=scrollbar.set)
 
 scrollbar.pack(side="right", fill="y")
@@ -544,6 +618,9 @@ run_button.pack(pady=10)
 results_text = tk.StringVar()
 results_label = ttk.Label(root, textvariable=results_text)
 results_label.pack(pady=10)
+
+
+
 
 
 root.mainloop()

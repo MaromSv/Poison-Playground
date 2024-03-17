@@ -34,13 +34,13 @@ attackParams - array of params coresponding to the selected attack
 defenceParams - array of params corresponding to the selected attack
 '''
 def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients, attack, 
-                        defence, attackParams, defenceParams):
+                        defence, attackParams, defenceParams, seed):
 
     #Load data
     if IID:
-        dataLoader = dataPartitioning(numClients, "IID")
+        dataLoader = dataPartitioning(numClients, "IID", seed)
     else:
-        dataLoader = dataPartitioning(numClients, "Horizontal")
+        dataLoader = dataPartitioning(numClients, "Horizontal", seed)
     horizontalData = dataLoader.getDataSet()
     unpartionedTestData = dataLoader.getUnpartionedTestData()
     imageShape = dataLoader.getHorizontalImageShape()
