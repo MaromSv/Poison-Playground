@@ -5,6 +5,7 @@ from Federated_Learning.dataPartitioning import dataPartitioning
 from Federated_Learning.attacks.modelPoisoning import model_poisoning
 from Federated_Learning.attacks.labelFlipping import flipLables
 from Federated_Learning.attacks.watermark import watermark
+from Federated_Learning.attacks.singlePixelAttack import singlePixelAttack
 
 from Federated_Learning.defenses.two_norm import two_norm
 from Federated_Learning.defenses.lf import clientSplitter
@@ -120,7 +121,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
         
         if defence == "Fools Gold":
             alphas = foolsGold(client_models, numClients, 1)
-        # FedAvg
+        # FedAvgo
         ##############################################################
         # Initialize the dictionary to store aggregated model weights
         server_weights = {}
@@ -169,6 +170,10 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
         print(f"Epoch {epoch}: Loss = {epoch_loss:.4f}, Accuracy = {accuracy:.4f}")
 
 
+        if attack == 'Single Pixel Attack':
+            horizontalData = singlePixelAttack(horizontalData, client_models[0], numClients, numMalClients , attackParams[0], attackParams[1])
+
+
     # Evaluation of model on test data
     with torch.no_grad():  # Disable gradient computation
         server_model.eval()
@@ -196,6 +201,18 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
     return accuracy, cm
 
 
+
+# #Example of calling the function: 
+# label_flip_attack_params = [0, 1] # source and target class
+# model_attack_params = [1] # Scale value
+# watermark_attack_params = [0.5, 6] # Scale value and target class
+# single_pixel_attack_params = [5, 1000]
+# label_flip_defense_params = [100] # 
+# model_defense_params = [10] # The largest L2-norm of the clipped local model updates is M
+# watermark_defense_params = [] # 
+# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
+#                         attack = 'Single Pixel Attack', defence = '', attackParams = single_pixel_attack_params, defenceParams = label_flip_defense_params)
+# print(accuracy)
 
 # #Example of calling the function: 
 # label_flip_attack_params = [0, 1] # source and target class

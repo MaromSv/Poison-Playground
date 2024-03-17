@@ -74,7 +74,7 @@ def create_scenario_form(frame, scenario_number):
     ttk.Label(scenario_frame, text="Select Attack:").grid(row=6, column=0, sticky='w')
     attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning', 'Watermark'), width=57)
     attack_combobox.grid(row=6, column=1, columnspan=3, sticky='w')
-    attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number))
+    attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number, 7))
     scenario_vars[f"attack_var_{scenario_number}"] = attack_var
 
 
@@ -82,11 +82,12 @@ def create_scenario_form(frame, scenario_number):
     ttk.Label(scenario_frame, text="Select Defense:").grid(row=7, column=0, sticky='w')
     defence_combobox = ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Two_Norm', 'Fools Gold'), width=57)
     defence_combobox.grid(row=7, column=1, columnspan=3, sticky='w')
-    # defence_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_defence_config(frame, defense_var.get(), scenario_number, 7, 5))
+    defence_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_defence_config(frame, defense_var.get(), scenario_number, 7))
     scenario_vars[f"defense_var_{scenario_number}"] = defense_var
 
 
     scenario_vars[f"attackParams_{scenario_number}"] = []
+    scenario_vars[f"defenceParams_{scenario_number}"] = []
     # Update the scroll region after adding new widgets
     frame.update_idletasks()  # This updates the layout
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
@@ -94,13 +95,18 @@ def create_scenario_form(frame, scenario_number):
     
 
 
-def update_attack_config(scenario_frame, attack, scenario_number):
+def update_attack_config(scenario_frame, attack, scenario_number, rowNum):
 
     global scenario_vars
 
     # Clear previous attack configuration fields
     for widget in scenario_frame.winfo_children():
         widget.grid_forget()
+
+
+    # # Call update_defence_config here
+    # defence_var = scenario_vars[f"defense_var_{scenario_number}"].get()
+    # update_defence_config(scenario_frame, defence_var, scenario_number, rowNum)
 
     #Scenario name: 
     name = scenario_vars[f"name_{scenario_number}"]
@@ -154,7 +160,7 @@ def update_attack_config(scenario_frame, attack, scenario_number):
     attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning'), width=57)
     attack_combobox.grid(row=6, column=1, columnspan=3, sticky='w')
     # Isn't calling update_attack_config here recursive??????????????????????????????????????????????????????????????????????????????????????
-    attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number))
+    attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number, 7))
     scenario_vars[f"attack_var_{scenario_number}"] = attack_var
 
     
@@ -172,16 +178,15 @@ def update_attack_config(scenario_frame, attack, scenario_number):
 
         attackParams.append(source_label_var)
         attackParams.append(target_label_var)
-        rowNum = 9
-        entryNum = 5
+        rowNum += 2
+  
         
     elif attack == 'Model Poisoning':
         poisoning_scale_var = tk.DoubleVar()
         ttk.Label(scenario_frame, text="Poisoning Scale:").grid(row=8, column=0, sticky='w')
         ttk.Entry(scenario_frame, textvariable=poisoning_scale_var, width=60).grid(row=8, column=1, columnspan=3, sticky='w')
         attackParams.append(poisoning_scale_var)
-        rowNum = 8
-        entryNum = 6
+        rowNum += 1
 
     elif attack == "Watermark":
         scale_var = tk.DoubleVar()
@@ -192,16 +197,16 @@ def update_attack_config(scenario_frame, attack, scenario_number):
         ttk.Combobox(scenario_frame, textvariable=target_label_var, values=list(range(10)), width=57).grid(row=9, column=1, columnspan=3, sticky='w')
         attackParams.append(scale_var)
         attackParams.append(target_label_var)
-        entryNum = 6
-        rowNum = 9
+        rowNum += 2
+
     else:
-        rowNum = 7
+        pass
 
     defense_var = scenario_vars[f"defense_var_{scenario_number}"]
     ttk.Label(scenario_frame, text="Select Defense:").grid(row=rowNum+1, column=0, sticky='w')
     defence_combobox = ttk.Combobox(scenario_frame, textvariable=defense_var, values=('None', 'Two_Norm', 'Fools Gold'), width=57)
     defence_combobox.grid(row=rowNum + 1, column=1, columnspan=3, sticky='w')
-    # defence_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_defence_config(frame, defense_var.get(), scenario_number, rowNum, entryNum))
+    defence_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_defence_config(frame, defense_var.get(), scenario_number, rowNum))
     scenario_vars[f"defense_var_{scenario_number}"] = defense_var
 
     scenario_vars[f"attackParams_{scenario_number}"] = attackParams
@@ -216,36 +221,45 @@ def update_attack_config(scenario_frame, attack, scenario_number):
     scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
 
 
-# def update_defence_config(scenario_frame, defence, scenario_number, rowNum, entryNum):
-#     global scenario_vars
+def update_defence_config(scenario_frame, defence, scenario_number, rowNum):
+    global scenario_vars
 
-#     defenceParams = []
-#     if defence == 'Two_Norm':
-#         norm_threshold = tk.DoubleVar()
-#         ttk.Label(scenario_frame, text="Norm Threshold:").grid(row=rowNum + 1, column=0, sticky='w')
-#         ttk.Combobox(scenario_frame, textvariable=norm_threshold, values=list(range(10)), width=57).grid(row=rowNum + 1, column=1, columnspan=3, sticky='w')
+    # Clear existing defense configuration widgets if any
+    for child in scenario_frame.winfo_children():
+        if "defence_param" in child.winfo_name():
+            child.destroy()
 
-#         defenceParams.append(norm_threshold)
+    # Adjusting the row number to insert the defense parameters below the defense selection
+    defence_row = rowNum + 2  # Assuming defense combobox is at 'rowNum + 1'
 
-#         # rowNum += 1
+    defenceParams = []
+    if defence == 'Two_Norm':
+        # Creating the UI components for Two_Norm defense parameters
+        norm_threshold_var = tk.DoubleVar()
+        norm_threshold_label = ttk.Label(scenario_frame, text="Norm Threshold:", name=f"defence_param_{scenario_number}_label")
+        norm_threshold_entry = ttk.Entry(scenario_frame, textvariable=norm_threshold_var, width=60, name=f"defence_param_{scenario_number}_entry")
+
+        # Positioning the newly created widgets
+        norm_threshold_label.grid(row=defence_row, column=0, sticky='w')
+        norm_threshold_entry.grid(row=defence_row, column=1, columnspan=3, sticky='w')
+        defenceParams.append(norm_threshold_var)
         
-#     elif defence == 'Fools Gold':
-#         confidence_param = tk.DoubleVar()
-#         ttk.Label(scenario_frame, text="Confidence Param:").grid(row=rowNum + 1, column=0, sticky='w')
-#         ttk.Entry(scenario_frame, textvariable=confidence_param, width=60).grid(row=rowNum + 1, column=1, columnspan=3, sticky='w')
-#         defenceParams.append(confidence_param)
-#         # rowNum = 8
 
-#     else:
+    elif defence == 'Fools Gold':
+        # Creating the UI components for Fools Gold defense parameters
+        confidence_param_var = tk.DoubleVar()
+        confidence_param_label = ttk.Label(scenario_frame, text="Confidence Param:", name=f"defence_param_{scenario_number}_label")
+        confidence_param_entry = ttk.Entry(scenario_frame, textvariable=confidence_param_var, width=60, name=f"defence_param_{scenario_number}_entry")
+        defenceParams.append(confidence_param_var)
+        # Positioning the newly created widgets
+        confidence_param_label.grid(row=defence_row, column=0, sticky='w')
+        confidence_param_entry.grid(row=defence_row, column=1, columnspan=3, sticky='w')
 
-#         for widget_name, widget in scenario_frame.children.items():
-#             if widget_name.endswith("label" + str(rowNum + 2)):
-#                 print(widget_name)
-#                 widget.grid_forget()
-#             elif widget_name.endswith("entry" + str(entryNum + 1)):
-#                 print(widget_name)
-#                 widget.grid_forget()
 
+    scenario_vars[f"defenceParams_{scenario_number}"] = defenceParams
+    # Ensure the rest of the UI is adjusted accordingly
+    scenario_frame.update_idletasks()
+    scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all"))
 
 
 
@@ -317,12 +331,19 @@ def run_simulation():
         attack = scenario_vars[f"attack_var_{i}"].get()
         defence = scenario_vars[f"defense_var_{i}"].get()
         attackParams = scenario_vars[f"attackParams_{i}"] 
+        defenceParams = scenario_vars[f"defenceParams_{i}"]
+
         attackParamsList = []
         for j in range(len(attackParams)):
             attackParamsList.append(int(attackParams[j].get()))
-        
-        defenceParams = []
+        print(attackParamsList)
 
+        defenceParamsList = []
+        for j in range(len(defenceParams)):
+            defenceParamsList.append(int(defenceParams[j].get()))
+        print(defenceParamsList)
+
+      
 
         trials = int(num_trials_var.get())
         trialResults = []
@@ -331,12 +352,12 @@ def run_simulation():
             if scenario_vars[f"data_partitioning_var_{i}"].get() == "Vertical":
 
                 accuracy, cm = runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, 
-                                attack, defence, attackParamsList, defenceParams)
+                                attack, defence, attackParamsList, defenceParamsList)
                 
             elif scenario_vars[f"data_partitioning_var_{i}"].get() == "Horizontal":
 
                 accuracy, cm = runHorizontalSimulation(False, numEpochs, batchSize, numClients, numMalClients, 
-                                attack, defence, attackParamsList, defenceParams)
+                                attack, defence, attackParamsList, defenceParamsList)
             
             trialResults.append(cm)
         
