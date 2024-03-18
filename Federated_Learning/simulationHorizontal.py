@@ -36,6 +36,7 @@ defenceParams - array of params corresponding to the selected attack
 def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients, attack, 
                         defence, attackParams, defenceParams, seed):
 
+    torch.manual_seed(seed)
     #Load data
     if IID:
         dataLoader = dataPartitioning(numClients, "IID", seed)
@@ -208,10 +209,10 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 # watermark_attack_params = [0.5, 6] # Scale value and target class
 # single_pixel_attack_params = [5, 1000]
 # label_flip_defense_params = [100] # 
-# model_defense_params = [10] # The largest L2-norm of the clipped local model updates is M
+# model_defense_params = [100] # The largest L2-norm of the clipped local model updates is M
 # watermark_defense_params = [] # 
-# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 2, numMalClients = 1, 
-#                         attack = 'Single Pixel Attack', defence = '', attackParams = single_pixel_attack_params, defenceParams = label_flip_defense_params)
+# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 3, numMalClients = 1, 
+#                         attack = '', defence = '', attackParams = model_attack_params, defenceParams = model_defense_params, seed=1)
 # print(accuracy)
 
 # #Example of calling the function: 

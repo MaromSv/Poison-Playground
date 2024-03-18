@@ -31,6 +31,7 @@ Note: no option for IID as by definition the data wil awlays be IID in vertical
 def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attack, 
                         defence, attackParams, defenceParams, seed):
 
+    torch.manual_seed(seed)
 
     #Load data
     dataLoader = dataPartitioning(numClients, "Vertical", seed)
@@ -191,4 +192,4 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 # model_defense_params = [1000] # The largest L2-norm of the clipped local model updates is M
 # watermark_defense_params = [] # 
 # accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 3, numMalClients = 1, 
-#                         attack = 'Label Flipping', defence = 'Fools Gold', attackParams = label_flip_attack_params, defenceParams = model_defense_params)
+#                         attack = '', defence = '', attackParams = label_flip_attack_params, defenceParams = model_defense_params, seed=1)
