@@ -85,7 +85,7 @@ def create_scenario_form(frame, scenario_number):
 
     attack_var = tk.StringVar()
     ttk.Label(scenario_frame, text="Select Attack:").grid(row=6, column=0, sticky='w')
-    attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning', 'Watermark'), width=57)
+    attack_combobox = ttk.Combobox(scenario_frame, textvariable=attack_var, values=('None', 'Label Flipping', 'Model Poisoning', 'Single Pixel Attack'), width=57)
     attack_combobox.grid(row=6, column=1, columnspan=3, sticky='w')
     attack_combobox.bind("<<ComboboxSelected>>", lambda event, frame=scenario_frame: update_attack_config(frame, attack_var.get(), scenario_number, 7))
     scenario_vars[f"attack_var_{scenario_number}"] = attack_var
@@ -201,12 +201,12 @@ def update_attack_config(scenario_frame, attack, scenario_number, rowNum):
         attackParams.append(poisoning_scale_var)
         rowNum += 1
 
-    elif attack == "Watermark":
+    elif attack == "Single Pixel Attack":
         scale_var = tk.DoubleVar()
         target_label_var = tk.StringVar()
-        ttk.Label(scenario_frame, text="Scale:").grid(row=8, column=0, sticky='w')
+        ttk.Label(scenario_frame, text="nb_iter:").grid(row=8, column=0, sticky='w')
         ttk.Entry(scenario_frame, textvariable=scale_var, width=60).grid(row=8, column=1, columnspan=3, sticky='w')
-        ttk.Label(scenario_frame, text="Target Label:").grid(row=9, column=0, sticky='w')
+        ttk.Label(scenario_frame, text="eps:").grid(row=9, column=0, sticky='w')
         ttk.Combobox(scenario_frame, textvariable=target_label_var, values=list(range(10)), width=57).grid(row=9, column=1, columnspan=3, sticky='w')
         attackParams.append(scale_var)
         attackParams.append(target_label_var)
@@ -358,15 +358,16 @@ def run_simulation():
         attackParams = scenario_vars[f"attackParams_{i}"] 
         defenceParams = scenario_vars[f"defenceParams_{i}"]
 
+
         attackParamsList = []
         for j in range(len(attackParams)):
             attackParamsList.append(int(attackParams[j].get()))
-        print(attackParamsList)
+      
 
         defenceParamsList = []
         for j in range(len(defenceParams)):
             defenceParamsList.append(int(defenceParams[j].get()))
-        print(defenceParamsList)
+   
 
       
         seed = int(seed_var.get())
@@ -543,9 +544,10 @@ and start the simulation. Results will be displayed graphically."""
 explanation_label = ttk.Label(right_frame, text=explanation_text, wraplength=180, justify="left")
 explanation_label.pack(pady=10, padx=10)
 
-num_scenarios_var = tk.StringVar()
-num_trials_var = tk.DoubleVar()
-seed_var = tk.DoubleVar()
+num_scenarios_var = tk.StringVar(value = 0)
+num_trials_var = tk.DoubleVar(value = 1)
+seed_var = tk.DoubleVar(value = 20)
+
 
 # Create an input frame for scenario and trial inputs
 input_frame = ttk.Frame(left_frame)

@@ -11,9 +11,6 @@ def single_pixel_attack_image(model, image, label, max_iterations, eps):
     optimizer = torch.optim.Adam([image], lr=0.01)
 
     for _ in range(max_iterations):
-        # Randomly select pixel coordinates
-        pixels = torch.randint(0, image.size(2), (1, 2))
-
         # Forward pass
         output = model(image.unsqueeze(0))
         loss = F.cross_entropy(output, torch.tensor([label]))
@@ -22,32 +19,29 @@ def single_pixel_attack_image(model, image, label, max_iterations, eps):
         optimizer.zero_grad()
         loss.backward()
 
+        # Compute gradient magnitudes
+        gradients = image.grad.abs().view(-1)
+        max_grad_index = torch.argmax(gradients)
+
         # Update selected pixel
         with torch.no_grad():
-            image.data[pixels[0, 0], pixels[0, 1]] += eps * torch.sign(image.grad[pixels[0, 0], pixels[0, 1]])
+            image.data.view(-1)[max_grad_index] += eps * torch.sign(image.grad.view(-1)[max_grad_index])
             image.data.clamp_(0, 1)
 
     return image.detach().numpy()
 
-
-
-
 def singlePixelAttack(data, model, num_clients, mal_clients, nb_iter=100, eps=10):
     new_data = []
 
-    # # Define the attack
-    # attack = SinglePixelAttack(predictor=model, nb_iter=100, eps=10.)
-    
     for clientID in range(mal_clients):
         clientData = data[clientID]
         x_train, y_train, x_test, y_test = clientData
-        pertrubed_x_train = []
+        perturbed_x_train = []
         for i, image in enumerate(x_train):
             adversarial_image = single_pixel_attack_image(model, image, y_train[i], nb_iter, eps)
-            pertrubed_x_train.append(adversarial_image)
+            perturbed_x_train.append(adversarial_image)
         
-        new_data.append([pertrubed_x_train, y_train, x_test, y_test])
-
+        new_data.append([perturbed_x_train, y_train, x_test, y_test])
 
     # Add the non-malicious clients' data without altering it
     for clientID in range(mal_clients, num_clients):
