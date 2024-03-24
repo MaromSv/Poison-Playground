@@ -375,7 +375,7 @@ def run_simulation():
         trials = int(num_trials_var.get())
         trialResults = []
         for j in range(trials):
-    
+            seed += j # Change the seed for every trial
             if scenario_vars[f"data_partitioning_var_{i}"].get() == "Vertical":
 
                 accuracy, cm = runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, 
