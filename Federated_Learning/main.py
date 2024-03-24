@@ -7,13 +7,14 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 
 import seaborn as sns
-from sklearn.metrics import confusion_matrix
 import numpy as np
 import threading
 import time
 
 from simulationVertical import runVerticalSimulation
 from simulationHorizontal import runHorizontalSimulation
+
+import csv
 
 global simulationComplete
 simulationComplete = False
@@ -328,6 +329,32 @@ def checkAllFieldsFilled():
     return True
 
 
+
+def save_to_csv(simulation_results, scenario_names, filepath="simulation_results.csv"):
+    if save_to_csv_var.get():
+        with open(filepath, 'w', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            
+            # Write headers for the confusion matrix
+            headers = ['Scenario Name'] + [f'Predicted {i}' for i in range(10)]
+            csvwriter.writerow(headers)
+            
+            for name, matrix in zip(scenario_names, simulation_results):
+                # Write scenario name as a new section
+                csvwriter.writerow([name])
+                
+                # Write each row of the confusion matrix
+                for i, row in enumerate(matrix):
+                    csvwriter.writerow([f'True {i}'] + row.tolist())
+                
+                # Optional: write an empty row to separate scenarios
+                csvwriter.writerow([])
+        
+        print(f"Results saved to {filepath}")
+
+
+
+
 ##TODO: GET THE LOADING BAR TO WORK PROPERLY
 def start_simulation():
     if not checkAllFieldsFilled():
@@ -347,6 +374,7 @@ def run_simulation():
     # Example of how to use show_results function
     simulation_results = []
     scenario_names = []
+    accuracies_per_scenario = [] # Store the accuracies for each scenario for each trial
     for i in range(int(num_scenarios_var.get())):
         name = scenario_vars[f"name_{i}"].get()
         numEpochs = int(scenario_vars[f"epochs_var_{i}"].get())
@@ -373,7 +401,8 @@ def run_simulation():
         seed = int(seed_var.get())
 
         trials = int(num_trials_var.get())
-        trialResults = []
+        trialCMs = []
+        trialAccuracies = []
         for j in range(trials):
             seed += j # Change the seed for every trial
             if scenario_vars[f"data_partitioning_var_{i}"].get() == "Vertical":
@@ -386,11 +415,15 @@ def run_simulation():
                 accuracy, cm = runHorizontalSimulation(False, numEpochs, batchSize, numClients, numMalClients, 
                                 attack, defence, attackParamsList, defenceParamsList, seed)
             
-            trialResults.append(cm)
-        
+            
+            trialCMs.append(cm)
+            trialAccuracies.append(accuracy)
+
+        accuracies_per_scenario.append(trialAccuracies)
+
         cmSum = confusion_matrix(y_true=[], y_pred=[], labels=range(numOfClasses)) #(re)Initialize empty CM
-        for m in trialResults:
-            cmSum +=m
+        for cm in trialCMs:
+            cmSum +=cm
 
         
         simulation_results.append(cmSum)
@@ -399,7 +432,7 @@ def run_simulation():
     global simulationComplete
     simulationComplete = True
     
-    show_results(simulation_results, scenario_names)
+    show_results(simulation_results, scenario_names, accuracies_per_scenario)
 
    
     # Enable the run button after simulations are complete
@@ -424,7 +457,15 @@ def loadingScreen():
     loading_screen.destroy()
 
 
-def show_results(simulation_results, scenario_names):
+def show_results(simulation_results, scenario_names, accuracies_per_scenario):
+
+    # mean_accuracies = [np.mean(trial_accuracies) for trial_accuracies in accuracies_per_scenario]
+    std_errors = [np.std(trial_accuracies, ddof=1) / np.sqrt(len(trial_accuracies)) for trial_accuracies in accuracies_per_scenario]
+
+    #Save results to csv
+    save_to_csv(simulation_results, scenario_names, filepath="simulation_results.csv")
+
+
     # Create a new window for results
     results_window = tk.Toplevel(root)
     results_window.title("Simulation Results")
@@ -477,7 +518,7 @@ def show_results(simulation_results, scenario_names):
 
     # Plot the final accuracies
     fig, ax = plt.subplots(figsize=(8, 6))
-    bars = ax.bar(range(len(accuracies)), accuracies, color='skyblue')
+    bars = ax.bar(range(len(accuracies)), accuracies, color='skyblue', yerr=std_errors, capsize=5)
     ax.set_xticks(range(len(accuracies)))
     ax.set_xticklabels([f"{i}" for i in scenario_names])
     ax.set_ylabel('Accuracy')
@@ -547,6 +588,7 @@ explanation_label.pack(pady=10, padx=10)
 num_scenarios_var = tk.StringVar(value = 0)
 num_trials_var = tk.DoubleVar(value = 1)
 seed_var = tk.DoubleVar(value = 20)
+save_to_csv_var = tk.BooleanVar(value=False)
 
 
 # Create an input frame for scenario and trial inputs
@@ -614,8 +656,17 @@ scenarios_canvas.create_window((0, 0), window=scenarios_frame, anchor="nw")
 # This ensures that the canvas frame resizes to fit the inner frame
 scenarios_canvas.bind('<Configure>', lambda e: scenarios_canvas.configure(scrollregion=scenarios_canvas.bbox("all")))
 
-run_button = ttk.Button(root, text="Run Simulation", command=start_simulation)
-run_button.pack(pady=10)
+# Frame to hold the run button and CSV option
+run_and_save_frame = ttk.Frame(root)
+run_and_save_frame.pack(pady=10)
+
+# Run Simulation button
+run_button = ttk.Button(run_and_save_frame, text="Run Simulation", command=start_simulation)
+run_button.grid(row=0, column=0, padx=5)
+
+# Radio Buttons for Save to CSV option
+ttk.Radiobutton(run_and_save_frame, text="Save to CSV", variable=save_to_csv_var, value=True).grid(row=0, column=1, padx=5)
+ttk.Radiobutton(run_and_save_frame, text="Don't Save", variable=save_to_csv_var, value=False).grid(row=0, column=2, padx=5)
 
 results_text = tk.StringVar()
 results_label = ttk.Label(root, textvariable=results_text)
