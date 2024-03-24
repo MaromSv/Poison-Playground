@@ -1,39 +1,45 @@
 # Attack based on paper from: http://arxiv.org/abs/1808.04866
 
 import numpy as np
-from decimal import Decimal
+from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import cosine_similarity
 
-def foolsGold(clientModels, numClients, confidence_parameter = 1):
-    cosines = [[0 for _ in range(numClients)] for _ in range(numClients)]
+def foolsGold(clientModels, numClients, dampening_factor = .1):
+    client_vectors = []
+    for model in clientModels:
+        client_dict = model.state_dict()
+        client_vectors.append(np.array([np.concatenate([client_dict[key].numpy().flatten() for key in client_dict])]))
+    client_vectors = np.vstack(client_vectors)
+
+    cosines = cosine_similarity(client_vectors)
+
     v = []
-    alpha = []
-
-    for i in range(numClients):  # All clients i
-        for j in range(numClients):
-            if i != j:
-                client_i_dict = clientModels[i].state_dict()
-                client_j_dict = clientModels[j].state_dict()
-                client_i_values = np.concatenate([client_i_dict[key].numpy().flatten() for key in client_i_dict])
-                client_j_values = np.concatenate([client_j_dict[key].numpy().flatten() for key in client_j_dict])
-                
-                dot_product = np.dot(client_i_values, client_j_values)
-                cosines[i][j] = (dot_product / (np.linalg.norm(client_i_values) * np.linalg.norm(client_j_values)))
-
-        # Maximum cosine similarity
+    np.fill_diagonal(cosines, 0.0)
+    for i in range(numClients):
         v.append(max(cosines[i]))
 
-    # Pardoning
     for i in range(numClients):
         for j in range(numClients):
             if v[j] > v[i]:
                 cosines[i][j] *= v[i] / v[j]
 
-        # Row-size maximums
-        alpha.append(1 - max(cosines[i]))
+    kmeans = KMeans(n_clusters=2)
+    kmeans.fit(cosines)
+    labels = kmeans.labels_
 
-    # Logit function
-    for i in range(numClients):
-        alpha[i] = alpha[i] / max(alpha)
-        alpha[i] = confidence_parameter * (np.log(alpha[i] / (1 - alpha[i])) + 0.5)
+    count0 = np.sum(labels == 0)
+    count1 = np.sum(labels == 1)
+    if count0 < count1:
+        malicious_indices = np.where(labels == 0)[0]
+    else:
+        malicious_indices = np.where(labels == 1)[0]
+    
+    for index in malicious_indices:
+        temp = {}
+        client_weights = clientModels[index].state_dict()
+        for key in client_weights:
+            temp[key] = dampening_factor*client_weights[key]
 
-    return alpha
+        clientModels[index].load_state_dict(temp)
+    
+    return clientModels

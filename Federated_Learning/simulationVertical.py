@@ -136,7 +136,7 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
             clients = two_norm(clients, numClients, defenceParams[0])
         
         if defence == "Fools Gold":
-            alphas = foolsGold(clients, numClients, 1)
+            clients = foolsGold(clients, numClients, defenceParams[0])
 
         #Calculate Acccuracy
         epoch_outputs = torch.cat(epoch_outputs).cpu()
@@ -152,10 +152,7 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
     client_outputs = []
     for clientID in range(numClients):
         inputs = torch.tensor(verticalData[clientID][2]).to(device).float()
-        if defence == "Fools Gold":
-            outputs = clients[clientID](inputs) * alphas[clientID]
-        else:
-            outputs = clients[clientID](inputs)
+        outputs = clients[clientID](inputs)
         client_outputs.append(outputs)
     labels = torch.tensor(verticalData[0][3]).to(device)
     combined_output = torch.cat(client_outputs, dim=1)
@@ -188,8 +185,8 @@ def runVerticalSimulation(numEpochs, batchSize, numClients, numMalClients, attac
 # label_flip_attack_params = [0, 5] # source and target class
 # model_attack_params = [1] #scale factor
 # watermark_attack_params = [0.5, 6] # minimum noise value
-# label_flip_defense_params = [1, 3] # source and target
+# label_flip_defense_params = [.1] # malicious client's dampening factor
 # model_defense_params = [1000] # The largest L2-norm of the clipped local model updates is M
 # watermark_defense_params = [] # 
-# accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 3, numMalClients = 1, 
-#                         attack = '', defence = '', attackParams = label_flip_attack_params, defenceParams = model_defense_params, seed=1)
+# accuracy, cm = runVerticalSimulation(numEpochs = 3, batchSize = 16, numClients = 9, numMalClients = 3, 
+#                         attack = 'Label Flipping', defence = '', attackParams = label_flip_attack_params, defenceParams = label_flip_defense_params, seed=1)

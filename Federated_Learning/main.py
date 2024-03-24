@@ -414,7 +414,11 @@ def run_simulation():
 
                 accuracy, cm = runHorizontalSimulation(False, numEpochs, batchSize, numClients, numMalClients, 
                                 attack, defence, attackParamsList, defenceParamsList, seed)
-            
+                
+            elif scenario_vars[f"data_partitioning_var_{i}"].get() == "Horizontal_IID":
+
+                accuracy, cm = runHorizontalSimulation(True, numEpochs, batchSize, numClients, numMalClients, 
+                                attack, defence, attackParamsList, defenceParamsList, seed)
             
             trialCMs.append(cm)
             trialAccuracies.append(accuracy)
