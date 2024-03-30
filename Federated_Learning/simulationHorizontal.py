@@ -190,27 +190,27 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
     cm = confusion_matrix(true_labels, predicted_labels)
 
     #TODO: Remove stuff bellow as it will not longer be neccaisairy eventually
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.title('Confusion Matrix')
-    plt.show()
+    # plt.figure(figsize=(8, 6))
+    # sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], yticklabels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    # plt.xlabel('Predicted')
+    # plt.ylabel('True')
+    # plt.title('Confusion Matrix')
+    # plt.show()
 
     return accuracy, cm
 
 
 
 # #Example of calling the function: 
-label_flip_attack_params = [0, 1] # source and target class
-model_attack_params = [1] # Scale value
-watermark_attack_params = [0.5, 6] # Scale value and target class
-single_pixel_attack_params = [5, 1000]
-label_flip_defense_params = [.1] # malicious client's dampening factor
-model_defense_params = [100] # The largest L2-norm of the clipped local model updates is M
-watermark_defense_params = [] # 
-accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 4, numMalClients = 2, 
-                        attack = 'Label Flipping', defence = 'Fools Gold', attackParams = label_flip_attack_params, defenceParams = label_flip_defense_params, seed=1)
+# label_flip_attack_params = [0, 1] # source and target class
+# model_attack_params = [1] # Scale value
+# watermark_attack_params = [0.5, 6] # Scale value and target class
+# single_pixel_attack_params = [5, 1000]
+# label_flip_defense_params = [.1] # malicious client's dampening factor
+# model_defense_params = [100] # The largest L2-norm of the clipped local model updates is M
+# watermark_defense_params = [] # 
+# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 4, numMalClients = 2, 
+#                         attack = 'Label Flipping', defence = 'Fools Gold', attackParams = label_flip_attack_params, defenceParams = label_flip_defense_params, seed=1)
 # print(accuracy)
 
 # #Example of calling the function: 
