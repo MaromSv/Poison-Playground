@@ -197,7 +197,7 @@ def update_attack_config(scenario_frame, attack, scenario_number, rowNum):
         
     elif attack == 'Model Poisoning':
         poisoning_scale_var = tk.DoubleVar()
-        ttk.Label(scenario_frame, text="Poisoning Scale:").grid(row=8, column=0, sticky='w')
+        ttk.Label(scenario_frame, text="Poisoning Scale Factor:").grid(row=8, column=0, sticky='w')
         ttk.Entry(scenario_frame, textvariable=poisoning_scale_var, width=60).grid(row=8, column=1, columnspan=3, sticky='w')
         attackParams.append(poisoning_scale_var)
         rowNum += 1
@@ -262,7 +262,7 @@ def update_defence_config(scenario_frame, defence, scenario_number, rowNum):
     elif defence == 'Fools Gold':
         # Creating the UI components for Fools Gold defense parameters
         confidence_param_var = tk.DoubleVar()
-        confidence_param_label = ttk.Label(scenario_frame, text="Confidence Param:", name=f"defence_param_{scenario_number}_label")
+        confidence_param_label = ttk.Label(scenario_frame, text="Dampening Scale Factor:", name=f"defence_param_{scenario_number}_label")
         confidence_param_entry = ttk.Entry(scenario_frame, textvariable=confidence_param_var, width=60, name=f"defence_param_{scenario_number}_entry")
         defenceParams.append(confidence_param_var)
         # Positioning the newly created widgets
