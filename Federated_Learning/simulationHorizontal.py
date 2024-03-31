@@ -201,17 +201,17 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 
 
 
-# #Example of calling the function: 
-label_flip_attack_params = [0, 1] # source and target class
-model_attack_params = [1] # Scale value
-watermark_attack_params = [0.5, 6] # Scale value and target class
-single_pixel_attack_params = [5, 1000]
-label_flip_defense_params = [.1] # malicious client's dampening factor
-model_defense_params = [100] # The largest L2-norm of the clipped local model updates is M
-watermark_defense_params = [] # 
-accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 4, numMalClients = 2, 
-                        attack = 'Label Flipping', defence = 'Fools Gold', attackParams = label_flip_attack_params, defenceParams = label_flip_defense_params, seed=1)
-# print(accuracy)
+# # #Example of calling the function: 
+# label_flip_attack_params = [0, 1] # source and target class
+# model_attack_params = [1] # Scale value
+# watermark_attack_params = [0.5, 6] # Scale value and target class
+# single_pixel_attack_params = [5, 1000]
+# label_flip_defense_params = [.1] # malicious client's dampening factor
+# model_defense_params = [100] # The largest L2-norm of the clipped local model updates is M
+# watermark_defense_params = [] # 
+# accuracy, cm = runHorizontalSimulation(IID = False, numEpochs = 3, batchSize = 16, numClients = 4, numMalClients = 2, 
+#                         attack = 'Label Flipping', defence = 'Fools Gold', attackParams = label_flip_attack_params, defenceParams = label_flip_defense_params, seed=1)
+# # print(accuracy)
 
 # #Example of calling the function: 
 # label_flip_attack_params = [0, 1] # source and target class
