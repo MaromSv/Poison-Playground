@@ -69,24 +69,22 @@ class dataPartitioning :
 
 
     def horizontalDivideDataIID(self, x_train, y_train, x_test, y_test):
-        #Normalize data
+        # Normalize data
         x_train, x_test = self.normalizeData(x_train, x_test)
 
         indices_train = np.arange(len(x_train))
         np.random.shuffle(indices_train)
 
-        # The test data can be split arbitrarily, as done in non-IID
         indices_test = np.arange(len(x_test))
         np.random.shuffle(indices_test)
         client_indicies_test = np.array_split(indices_test, self.num_clients)
 
-
-        nextClientIndex = [0] * 10  # Used to determine which clientID will get the next image of each class
+        nextClientIndex = [0] * 10  # Assuming 10 classes for simplicity; adjust as necessary
         clients_x_train = [[] for _ in range(self.num_clients)]
         clients_y_train = [[] for _ in range(self.num_clients)]
         clients_count = [[0 for _ in range(10)] for _ in range(self.num_clients)]
 
-        # We check each image's label, and give it to the clientID specified in nextClientIndex[label]
+        # Distribute training data ensuring IID distribution
         for i in indices_train:
             label = y_train[i]
             clientID = nextClientIndex[label]
@@ -97,16 +95,19 @@ class dataPartitioning :
 
             nextClientIndex[label] = (nextClientIndex[label] + 1) % self.num_clients
 
-        
-        # Here we add the test data, and format to be the desired shape
+        # Convert list to numpy arrays
+        for i in range(self.num_clients):
+            clients_x_train[i] = np.array(clients_x_train[i])
+            clients_y_train[i] = np.array(clients_y_train[i])
+
+        # Add the test data, format to desired shape
         horizontal_IID_clients_datasets = []
         for client in range(self.num_clients):
             client_index_test = client_indicies_test[client]
-            client_x_train = clients_x_train[client]
-            client_y_train = clients_y_train[client]
             client_x_test = x_test[client_index_test]
             client_y_test = y_test[client_index_test]
-            horizontal_IID_clients_datasets.append((client_x_train, client_y_train, client_x_test, client_y_test))
+            horizontal_IID_clients_datasets.append((
+                clients_x_train[client], clients_y_train[client], client_x_test, client_y_test))
 
         return horizontal_IID_clients_datasets
 
