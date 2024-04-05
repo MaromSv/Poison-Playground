@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from PIL import Image
-
+from functools import lru_cache
 
 class dataPartitioning : 
     def __init__(self, num_clients, type, seed):
@@ -38,6 +38,7 @@ class dataPartitioning :
 
         return normalized_x_train, normalized_x_test
 
+    @lru_cache(maxsize=128) 
     def horizontalDivideData(self, x_train, y_train, x_test, y_test):
         #Normalize data
         x_train, x_test = self.normalizeData(x_train, x_test)
@@ -67,7 +68,7 @@ class dataPartitioning :
         return horizontal_clients_datasets
     
 
-
+    @lru_cache(maxsize=128)
     def horizontalDivideDataIID(self, x_train, y_train, x_test, y_test):
         # Normalize data
         x_train, x_test = self.normalizeData(x_train, x_test)
@@ -142,7 +143,7 @@ class dataPartitioning :
 
 
 
-
+    @lru_cache(maxsize=128)
     def verticalDivideData(self, x_train, y_train, x_test, y_test):
         #Resize the images so that each client gets equal sized piece
         x_train, x_test = self.resizeImages(x_train, x_test)
