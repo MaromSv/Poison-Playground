@@ -330,15 +330,16 @@ def checkAllFieldsFilled():
 
 
 
-def save_to_csv(simulation_results, scenario_names, filepath="simulation_results.csv"):
+def save_to_csv(simulation_results, scenario_names, std_errors, mean_accuracies, filepath="simulation_results.csv"):
     if save_to_csv_var.get():
         with open(filepath, 'w', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
             
             # Write headers for the confusion matrix
-            headers = ['Scenario Name'] + [f'Predicted {i}' for i in range(10)]
+            headers = ['Scenario Name'] + [f'Predicted {i}' for i in range(10)] + ['Standard Error', 'Accuracy']
             csvwriter.writerow(headers)
-            
+
+            simulation_index = 0
             for name, matrix in zip(scenario_names, simulation_results):
                 # Write scenario name as a new section
                 csvwriter.writerow([name])
@@ -346,6 +347,10 @@ def save_to_csv(simulation_results, scenario_names, filepath="simulation_results
                 # Write each row of the confusion matrix
                 for i, row in enumerate(matrix):
                     csvwriter.writerow([f'True {i}'] + row.tolist())
+
+                # Write the standard error and accuracy for this scenario
+                csvwriter.writerow([std_errors[simulation_index], mean_accuracies[simulation_index]])
+                simulation_index += 1
                 
                 # Optional: write an empty row to separate scenarios
                 csvwriter.writerow([])
@@ -463,11 +468,11 @@ def loadingScreen():
 
 def show_results(simulation_results, scenario_names, accuracies_per_scenario):
 
-    # mean_accuracies = [np.mean(trial_accuracies) for trial_accuracies in accuracies_per_scenario]
+    mean_accuracies = [np.mean(trial_accuracies) for trial_accuracies in accuracies_per_scenario]
     std_errors = [np.std(trial_accuracies, ddof=1) / np.sqrt(len(trial_accuracies)) for trial_accuracies in accuracies_per_scenario]
 
     #Save results to csv
-    save_to_csv(simulation_results, scenario_names, filepath="simulation_results.csv")
+    save_to_csv(simulation_results, scenario_names, std_errors, mean_accuracies, filepath="simulation_results.csv")
 
 
     # Create a new window for results

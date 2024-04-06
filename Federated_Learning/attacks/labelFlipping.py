@@ -4,7 +4,7 @@
 
 import numpy as np
 
-def flipLables(data, source, target, num_clients, mal_clients):
+def flipLabels(data, source, target, num_clients, mal_clients):
     new_data = []
 
     # Flip labels for malicious clients

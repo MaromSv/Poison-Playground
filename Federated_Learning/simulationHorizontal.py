@@ -3,7 +3,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from Federated_Learning.dataPartitioning import dataPartitioning
 from Federated_Learning.attacks.modelPoisoning import model_poisoning
-from Federated_Learning.attacks.labelFlipping import flipLables
+from Federated_Learning.attacks.labelFlipping import flipLabels
 from Federated_Learning.attacks.watermark import watermark
 from Federated_Learning.attacks.singlePixelAttack import singlePixelAttack
 
@@ -77,7 +77,7 @@ def runHorizontalSimulation(IID, numEpochs, batchSize, numClients, numMalClients
 
   
     if attack == "Label Flipping":
-        horizontalData = flipLables(horizontalData, attackParams[0], attackParams[1], numClients, numMalClients)
+        horizontalData = flipLabels(horizontalData, attackParams[0], attackParams[1], numClients, numMalClients)
     if attack == "Watermark":
         horizontalData = watermark(horizontalData, numClients, numMalClients, attackParams[0], attackParams[1])
 
