@@ -51,7 +51,6 @@
     <li><a href="#adding-new-attacks--defenses">Adding new attacks and defenses</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </div>
 
