@@ -115,9 +115,9 @@ The below three steps describe how you can add your own attack or defense to Poi
 
 1) **Create the attack's/defense's file:** The first step is to create your new file in either the [attacks](/Federated_Learning/attacks/) or [defenses](/Federated_Learning/defenses/) folder. Then you need to write your attack/defense code. It is recommended to make your attack/defense executable by calling only one function, and that it obtains all needed parameters from the simulation file.
 
-2) **Add the attack/defense to both simulation's code:** To execute your attack/defense, you need to add it to the simulation files. Depending on how your code works, the location of execution will vary. Some examples can be seen with our implemented attacks and defenses.
+2) **Add the attack/defense to the vertical simulation code and the horizontal simulation code:** To execute your attack/defense, you need to add it to the simulation files. Depending on how your code works, the location of execution will vary. Some examples can be seen with our implemented attacks and defenses. The name of the attack/defence can be passed as a parameter through the GUI, ensure that the you add an if statement to check for this and execute the attack/ defence. 
 
-3) **Add the attack/defense to the GUI:** <span style="font-size: x-large;">(Not sure)</span>
+3) **Add the attack/defense to the GUI:**  Finally add the name of the attack/defence to the create_scenario_form() as an option for the attacks /defences dialogue. Also add it to update_attack_config() or update_defence_config(). 
 
 
 
