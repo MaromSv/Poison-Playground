@@ -145,10 +145,3 @@ Yusef Ahmed - [LinkedIn](https://www.linkedin.com/in/yusefahmd/) - yusefahmed040
 Marom Sverdlov - [LinkedIn](https://www.linkedin.com/in/marom-sverdlov-251370252/) - maroms.private@gmail.com
 
 
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-* []()
-* []()
-* []()
