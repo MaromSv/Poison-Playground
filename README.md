@@ -29,16 +29,6 @@
 
 
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/MaromSv/Poison-Playground">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-</div>
-
-
-
 <!-- TABLE OF CONTENTS -->
 <div>
   <h2>Table of contents</h2>
@@ -59,14 +49,8 @@
 <!-- ABOUT THE PROJECT -->
 ## About the project
 
-<div align="center">
-  <a href="https://github.com/MaromSv/Poison-Playground">
-    <img src="images/teaser.png" alt="Teaser" width="80" height="80">
-  </a>
-</div>
-
 Poison Playground is a benchmarking tool that can be used to compare how vertical and horizontal federated learning models handle different attacks and defenses. The base tool includes some poisoning attacks and defenses. <br />
-Poison Playgroud uses the <a href="https://www.tensorflow.org/datasets/catalog/mnist">MNIST Digits</a> dataset using TensorFlow.
+Poison Playground uses the <a href="https://www.tensorflow.org/datasets/catalog/mnist">MNIST Digits</a> dataset using TensorFlow.
 
 Poison Playground was created by researchers, for researchers. It is meant to help make comparing the effects of various attacks and defenses on horizontal and vertical federated learning much easier. It is intended to speed up research by providing a useful metric collection and comparison tool.
 
