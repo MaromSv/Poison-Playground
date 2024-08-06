@@ -69,13 +69,13 @@ To ensure you have all of the necessary packages, first run the [requirements.tx
 
 1. Run [main.py](/Federated_Learning/main.py)
 
-2. In the GUI, fill in <span style="font-size: x-large;">(more info about how the user inputs parameters)</span>. Then press the "Run Simulation" button.
+2. In the GUI, fill in <span style="font-size: x-large;"> the number of scenarios you want to run, then the specific attack, defence and corresponding paramaters.</span>. Then press the "Run Simulation" button.
 
 3. Once the "Run Simulation" button has been pressed, the described experiments will run. The first step in running an instance is to partition the data, either horizontally or vertically. This is done in the [dataPartitioning.py](/Federated_Learning//dataPartitioning.py) file.
 
 4. Then, the instances will be run one by one. To run an instance, the parameters inputted for the instance are passed to the [simulationHorizontal.py](/Federated_Learning/simulationHorizontal.py) or [simulationVertical.py](/Federated_Learning/simulationVertical.py) simulation file, depending on which federated learning model was chosen.
 
-5. Finally, once all of the instances are done, the GUI will display a new window with <span style="font-size: x-large;">(describe the metrics and graphs displayed)</span>.
+5. Finally, once all of the instances are done, the GUI will display a new window with <span style="font-size: x-large;"> a confusion matrix for every scenario as well as a bar chart comparing between all scenarios</span>.
 
 
 
